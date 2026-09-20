@@ -1,0 +1,4 @@
+- Never change existing JSX structure, Tailwind classes, or component layout without being explicitly asked to.
+- When wiring real data into a page, only replace the data source (mock array → query/fetch call). Do not touch the rendering/markup.
+- Always show a diff/summary of changed files before applying, and wait for confirmation on anything touching files under app/admin/.
+- Do not delete or rewrite existing files unless explicitly told to — prefer adding new files.
