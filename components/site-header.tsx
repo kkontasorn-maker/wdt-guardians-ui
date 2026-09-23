@@ -6,14 +6,16 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
-const links = [
-  { href: "/#program", label: "Program" },
-  { href: "/#impact", label: "Impact" },
-  { href: "/#faq", label: "FAQ" },
-];
+import { useLocale } from "@/lib/localeContext";
 
 export function SiteHeader() {
+  const { t } = useLocale();
+  const links = [
+    { href: "/#program", label: t("header.program") },
+    { href: "/#impact", label: t("header.impact") },
+    { href: "/#faq", label: t("header.faq") },
+  ];
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/80 bg-brand-paper/95 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-2 px-5 sm:h-16 sm:gap-3 sm:px-6">
@@ -34,14 +36,14 @@ export function SiteHeader() {
         <div className="hidden items-center gap-3 md:flex">
           <LanguageToggle />
           <Button asChild>
-            <Link href="/join">Join</Link>
+            <Link href="/join">{t("header.join")}</Link>
           </Button>
         </div>
         <div className="flex shrink-0 items-center gap-2 md:hidden">
           <LanguageToggle />
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="Open menu">
+              <Button variant="outline" size="icon" aria-label={t("header.openMenu")}>
                 <Menu />
               </Button>
             </SheetTrigger>
@@ -62,7 +64,7 @@ export function SiteHeader() {
                   </Link>
                 ))}
                 <Button asChild className="mt-4 w-full">
-                  <Link href="/join">Join</Link>
+                  <Link href="/join">{t("header.join")}</Link>
                 </Button>
               </div>
             </SheetContent>

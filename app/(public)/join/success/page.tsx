@@ -6,12 +6,14 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMembership } from "@/lib/hooks";
-import { formatDate, formatMoney, periodAmount, planById } from "@/lib/membership";
+import { formatDateForLocale, formatMoneyForLocale, planCopy } from "@/lib/i18n";
+import { useLocale } from "@/lib/localeContext";
+import { periodAmount } from "@/lib/membership";
 
-async function saveGuardianId(memberId: string) {
+async function saveGuardianId(memberId: string, copied: string, savedFile: string) {
   try {
     await navigator.clipboard.writeText(memberId);
-    toast.success("Guardian ID copied.");
+    toast.success(copied);
   } catch {
     const blob = new Blob([memberId], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -20,12 +22,13 @@ async function saveGuardianId(memberId: string) {
     link.download = `${memberId}.txt`;
     link.click();
     URL.revokeObjectURL(url);
-    toast.success("Guardian ID saved as a text file.");
+    toast.success(savedFile);
   }
 }
 
 export default function JoinSuccessPage() {
   const { membership, state } = useMembership();
+  const { locale, t } = useLocale();
 
   if (state === "loading") {
     return (
@@ -40,12 +43,12 @@ export default function JoinSuccessPage() {
   if (state === "error") {
     return (
       <div className="mx-auto w-full max-w-lg px-5 py-16 text-center sm:px-6">
-        <h1 className="text-3xl font-extrabold">We could not load your confirmation</h1>
+        <h1 className="text-3xl font-extrabold">{t("success.loadErrorHeadline")}</h1>
         <p className="mt-3 text-muted-foreground">
-          Membership data in this browser looks damaged. Clear it from the member portal and join again.
+          {t("success.loadErrorBody")}
         </p>
         <Button asChild className="mt-6">
-          <Link href="/manage">See member benefits</Link>
+          <Link href="/manage">{t("success.seeBenefits")}</Link>
         </Button>
       </div>
     );
@@ -54,20 +57,21 @@ export default function JoinSuccessPage() {
   if (!membership || membership.status === "canceled") {
     return (
       <div className="mx-auto w-full max-w-lg px-5 py-16 text-center sm:px-6">
-        <h1 className="text-3xl font-extrabold">No membership to confirm</h1>
+        <h1 className="text-3xl font-extrabold">{t("success.emptyHeadline")}</h1>
         <p className="mt-3 text-muted-foreground">
-          This page appears after you confirm a Guardian plan. Join to receive your ID card.
+          {t("success.emptyBody")}
         </p>
         <Button asChild className="mt-6">
-          <Link href="/join">Become a Guardian</Link>
+          <Link href="/join">{t("success.become")}</Link>
         </Button>
       </div>
     );
   }
 
-  const plan = planById(membership.planId);
-  const supportLevel = `${plan.name} · ${formatMoney(periodAmount(membership.amount, membership.interval))} / ${
-    membership.interval === "annual" ? "year" : "month"
+  const copy = planCopy(membership.planId === "custom" ? "wdt399" : membership.planId, locale);
+  const planName = membership.planId === "custom" ? t("plans.custom.name") : copy.name;
+  const supportLevel = `${planName} · ${formatMoneyForLocale(periodAmount(membership.amount, membership.interval), locale)} / ${
+    membership.interval === "annual" ? t("interval.year") : t("interval.month")
   }`;
 
   return (
@@ -76,9 +80,9 @@ export default function JoinSuccessPage() {
         <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent text-brand-orange">
           <CheckCircle2 className="h-8 w-8" strokeWidth={2} />
         </span>
-        <h1 className="mt-5 text-[1.75rem] font-extrabold leading-tight sm:text-4xl">You are now a WDT Guardian</h1>
+        <h1 className="mt-5 text-[1.75rem] font-extrabold leading-tight sm:text-4xl">{t("success.headline")}</h1>
         <p className="mt-3 text-muted-foreground">
-          Welcome, {membership.firstName}. Keep this ID — it is how the Chiang Mai desk knows you.
+          {t("success.welcome", { name: membership.firstName })}
         </p>
       </div>
 
@@ -87,44 +91,44 @@ export default function JoinSuccessPage() {
         <div className="pointer-events-none absolute -bottom-12 left-8 h-32 w-32 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute right-16 bottom-10 h-14 w-14 rounded-full border border-white/15" />
         <p className="relative text-xs font-semibold uppercase tracking-[0.2em] text-white/55">
-          WDT Guardians
+          {t("success.brand")}
         </p>
         <p className="relative mt-6 text-xs font-medium uppercase tracking-[0.16em] text-white/55">
-          Guardian ID
+          {t("success.guardianId")}
         </p>
         <p className="relative mt-1 break-all font-heading text-2xl font-extrabold tracking-wide sm:text-4xl sm:tracking-[0.12em]">
           {membership.memberId}
         </p>
         <dl className="relative mt-8 grid gap-5 sm:grid-cols-2">
           <div>
-            <dt className="text-xs uppercase tracking-[0.16em] text-white/55">Support level</dt>
+            <dt className="text-xs uppercase tracking-[0.16em] text-white/55">{t("success.supportLevel")}</dt>
             <dd className="mt-1 font-medium text-white">{supportLevel}</dd>
           </div>
           <div>
-            <dt className="text-xs uppercase tracking-[0.16em] text-white/55">Member since</dt>
-            <dd className="mt-1 font-medium text-white">{formatDate(membership.joinedAt)}</dd>
+            <dt className="text-xs uppercase tracking-[0.16em] text-white/55">{t("success.memberSince")}</dt>
+            <dd className="mt-1 font-medium text-white">{formatDateForLocale(membership.joinedAt, locale)}</dd>
           </div>
         </dl>
       </div>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <Button size="lg" className="w-full sm:flex-1" onClick={() => saveGuardianId(membership.memberId)}>
-          Save Guardian ID
+        <Button size="lg" className="w-full sm:flex-1" onClick={() => saveGuardianId(membership.memberId, t("success.copied"), t("success.savedFile"))}>
+          {t("success.saveId")}
         </Button>
         <Button asChild size="lg" variant="outline" className="w-full sm:flex-1">
-          <Link href="/manage">See member benefits</Link>
+          <Link href="/manage">{t("success.seeBenefits")}</Link>
         </Button>
       </div>
 
       <div className="mt-12">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">
-          What happens next
+          {t("success.nextKicker")}
         </p>
         <ul className="mt-5 space-y-4">
           {[
-            { icon: Mail, title: "Monthly Guardian Impact Brief" },
-            { icon: FileText, title: "Inside WDT updates" },
-            { icon: Users, title: "Quarterly Case Room access" },
+            { icon: Mail, title: t("success.nextMail") },
+            { icon: FileText, title: t("success.nextUpdates") },
+            { icon: Users, title: t("success.nextRoom") },
           ].map((item) => (
             <li key={item.title} className="flex items-center gap-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-brand-deep">

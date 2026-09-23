@@ -24,10 +24,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMembership } from "@/lib/hooks";
+import { formatDateForLocale, formatMoneyForLocale, paymentBrandLabel, planCopy } from "@/lib/i18n";
+import { useLocale } from "@/lib/localeContext";
 import {
   addInterval,
-  formatDate,
-  formatMoney,
   generateReceiptId,
   impactFromMembership,
   periodAmount,
@@ -37,23 +37,24 @@ import {
   type PlanId,
 } from "@/lib/membership";
 
-function statusBadge(status: Membership["status"]) {
-  if (status === "active") return <Badge className="bg-brand-orange hover:bg-brand-deep">Active</Badge>;
+function statusBadge(status: Membership["status"], t: (key: string) => string) {
+  if (status === "active") return <Badge className="bg-brand-orange hover:bg-brand-deep">{t("status.active")}</Badge>;
   if (status === "paused")
     return (
       <Badge variant="outline" className="border-brand-slate text-brand-slate">
-        Paused
+        {t("status.paused")}
       </Badge>
     );
   return (
     <Badge variant="outline" className="text-destructive">
-      Canceled
+      {t("status.canceled")}
     </Badge>
   );
 }
 
 export default function ManagePage() {
   const { membership, state, save, clear } = useMembership();
+  const { locale, t } = useLocale();
   const [planDraft, setPlanDraft] = useState<PlanId>("wdt399");
   const [cardDraft, setCardDraft] = useState("");
   const [cardOpen, setCardOpen] = useState(false);
@@ -80,10 +81,9 @@ export default function ManagePage() {
       <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>The member record would not load</AlertTitle>
+          <AlertTitle>{t("manage.errorTitle")}</AlertTitle>
           <AlertDescription>
-            Local membership data is unreadable. Clear it and start again, or load the sample WDT 399 member so you
-            can still tour the portal.
+            {t("manage.errorBody")}
           </AlertDescription>
         </Alert>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -91,18 +91,18 @@ export default function ManagePage() {
             variant="outline"
             onClick={() => {
               clear();
-              toast.message("Cleared damaged membership data.");
+              toast.message(t("manage.clearedDamaged"));
             }}
           >
-            Clear damaged data
+            {t("manage.clearDamaged")}
           </Button>
           <Button
             onClick={() => {
               save(sampleMembership());
-              toast.success("Loaded Niran Srisawat’s sample WDT 399 membership.");
+              toast.success(t("manage.sampleLoaded"));
             }}
           >
-            Load sample member
+            {t("manage.loadSample")}
           </Button>
         </div>
       </div>
@@ -113,25 +113,24 @@ export default function ManagePage() {
     return (
       <div className="mx-auto w-full max-w-lg px-4 py-16 sm:px-6">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-slate">
-          Member portal
+          {t("manage.memberPortal")}
         </p>
-        <h1 className="mt-2 text-3xl font-extrabold">No Guardian in this browser yet.</h1>
+        <h1 className="mt-2 text-3xl font-extrabold">{t("manage.emptyHeadline")}</h1>
         <p className="mt-3 text-muted-foreground">
-          Join to create a mock membership, or load a sample WDT 399 Guardian to explore pause, receipts, and plan
-          changes without filling the form.
+          {t("manage.emptyBody")}
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild>
-            <Link href="/join">Become a Guardian</Link>
+            <Link href="/join">{t("success.become")}</Link>
           </Button>
           <Button
             variant="outline"
             onClick={() => {
               save(sampleMembership());
-              toast.success("Loaded Niran Srisawat’s sample WDT 399 membership.");
+              toast.success(t("manage.sampleLoaded"));
             }}
           >
-            Load sample member
+            {t("manage.loadSample")}
           </Button>
         </div>
       </div>
@@ -156,13 +155,13 @@ export default function ManagePage() {
         current.status === "paused" ? current.nextBillingAt : addInterval(now, current.interval),
     });
     setPlanOpen(false);
-    toast.success(`You’re now on ${plan.name}.`);
+    toast.success(t("manage.planSaved", { name: planCopy(plan.id, locale).name }));
   }
 
   function applyCard() {
     const digits = cardDraft.replace(/\s/g, "");
     if (!/^\d{16}$/.test(digits)) {
-      toast.error("Enter a 16-digit mock card number.");
+      toast.error(t("manage.cardInvalid"));
       return;
     }
     save({
@@ -172,7 +171,7 @@ export default function ManagePage() {
     });
     setCardOpen(false);
     setCardDraft("");
-    toast.success("Payment method updated.");
+    toast.success(t("manage.cardSaved"));
   }
 
   function pauseOrResume() {
@@ -184,7 +183,7 @@ export default function ManagePage() {
         pausedAt: null,
         nextBillingAt: addInterval(now, current.interval),
       });
-      toast.success("Membership resumed. The next mock charge is on the calendar.");
+      toast.success(t("manage.resumed"));
       return;
     }
     save({
@@ -193,7 +192,7 @@ export default function ManagePage() {
       pausedAt: new Date().toISOString(),
       nextBillingAt: null,
     });
-    toast.message("Membership paused. No further mock charges will be scheduled.");
+    toast.message(t("manage.pausedToast"));
   }
 
   function cancelMembership() {
@@ -204,7 +203,7 @@ export default function ManagePage() {
       nextBillingAt: null,
     });
     setCancelOpen(false);
-    toast.message("Membership canceled. You can rejoin any time.");
+    toast.message(t("manage.canceledToast"));
   }
 
   function addMockCharge() {
@@ -218,7 +217,7 @@ export default function ManagePage() {
       ],
       nextBillingAt: addInterval(now, current.interval),
     });
-    toast.success(`Recorded a mock ${formatMoney(amount)} receipt.`);
+    toast.success(t("manage.recordedReceipt", { amount: formatMoneyForLocale(amount, locale) }));
   }
 
   return (
@@ -226,31 +225,34 @@ export default function ManagePage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-slate">
-            Member portal
-          </p>
-          <h1 className="mt-2 text-4xl font-extrabold">Hello, {membership.firstName}.</h1>
+          {t("manage.memberPortal")}
+        </p>
+          <h1 className="mt-2 text-4xl font-extrabold">{t("manage.hello", { name: membership.firstName })}</h1>
           <p className="mt-2 text-muted-foreground">
             {membership.memberId} · {membership.email}
           </p>
         </div>
-        {statusBadge(membership.status)}
+        {statusBadge(membership.status, t)}
       </div>
 
       {membership.status === "canceled" && (
         <Alert className="mt-6">
-          <AlertTitle>This membership is canceled</AlertTitle>
+          <AlertTitle>{t("manage.canceledTitle")}</AlertTitle>
           <AlertDescription>
-            Your giving history is still here. Rejoin from the join form, or switch to a plan below to
-            reactivate this mock record.
+            {t("manage.canceledBody")}
           </AlertDescription>
         </Alert>
       )}
 
       {membership.status === "paused" && (
         <Alert className="mt-6 border-brand-slate/30">
-          <AlertTitle>Paused since {membership.pausedAt ? formatDate(membership.pausedAt) : "recently"}</AlertTitle>
+          <AlertTitle>
+            {t("manage.pausedTitle", {
+              date: membership.pausedAt ? formatDateForLocale(membership.pausedAt, locale) : t("manage.pausedRecently"),
+            })}
+          </AlertTitle>
           <AlertDescription>
-            Field notes from the desk will pause with billing. Resume when you are ready — your member ID stays the same.
+            {t("manage.pausedBody")}
           </AlertDescription>
         </Alert>
       )}
@@ -258,39 +260,41 @@ export default function ManagePage() {
       <div className="mt-8 grid gap-4 md:grid-cols-3">
         <Card className="bg-white">
           <CardHeader>
-            <CardDescription>Current plan</CardDescription>
+            <CardDescription>{t("manage.currentPlan")}</CardDescription>
             <CardTitle className="font-heading text-2xl">
-              {membership.planId === "custom" ? "Custom" : PLANS.find((p) => p.id === membership.planId)?.name}
+              {membership.planId === "custom"
+                ? t("plans.custom.name")
+                : planCopy(membership.planId, locale).name}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {formatMoney(periodAmount(membership.amount, membership.interval))} /{" "}
-              {membership.interval === "annual" ? "year" : "month"}
+              {formatMoneyForLocale(periodAmount(membership.amount, membership.interval), locale)} /{" "}
+              {membership.interval === "annual" ? t("interval.year") : t("interval.month")}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-white">
           <CardHeader>
-            <CardDescription>Given with this membership</CardDescription>
-            <CardTitle className="font-heading text-2xl">{formatMoney(impact.given)}</CardTitle>
+            <CardDescription>{t("manage.given")}</CardDescription>
+            <CardTitle className="font-heading text-2xl">{formatMoneyForLocale(impact.given, locale)}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              About {impact.cases} verified reports and {impact.responses} field responses.
+              {t("manage.givenImpact", { cases: impact.cases, responses: impact.responses })}
             </p>
           </CardContent>
         </Card>
         <Card className="bg-white">
           <CardHeader>
-            <CardDescription>Next mock billing</CardDescription>
+            <CardDescription>{t("manage.nextBilling")}</CardDescription>
             <CardTitle className="font-heading text-2xl">
-              {membership.nextBillingAt ? formatDate(membership.nextBillingAt) : "Not scheduled"}
+              {membership.nextBillingAt ? formatDateForLocale(membership.nextBillingAt, locale) : t("manage.notScheduled")}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              {membership.cardBrand}
+              {paymentBrandLabel(membership.cardBrand, locale)}
               {membership.lastFour ? ` ···· ${membership.lastFour}` : ""}
             </p>
           </CardContent>
@@ -299,43 +303,48 @@ export default function ManagePage() {
 
       <Tabs defaultValue="impact" className="mt-8">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="impact">Impact</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="impact">{t("manage.tabImpact")}</TabsTrigger>
+          <TabsTrigger value="billing">{t("manage.tabBilling")}</TabsTrigger>
+          <TabsTrigger value="settings">{t("manage.tabSettings")}</TabsTrigger>
         </TabsList>
         <TabsContent value="impact" className="mt-4">
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="font-heading text-xl">Your year in the field</CardTitle>
+              <CardTitle className="font-heading text-xl">{t("manage.yearInField")}</CardTitle>
               <CardDescription>
-                Rough translations of {formatMoney(impact.given)} over {impact.months} month
-                {impact.months === 1 ? "" : "s"} of membership. Not an official audit figure.
+                {t("manage.yearCaption", {
+                  given: formatMoneyForLocale(impact.given, locale),
+                  months:
+                    impact.months === 1
+                      ? t("manage.monthOne")
+                      : t("manage.monthMany", { count: impact.months }),
+                })}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div>
                 <div className="mb-2 flex justify-between text-sm">
-                  <span>Verification</span>
-                  <span className="font-medium">{impact.cases} reports</span>
+                  <span>{t("manage.verification")}</span>
+                  <span className="font-medium">{t("manage.reports", { count: impact.cases })}</span>
                 </div>
                 <Progress value={Math.min(100, impact.cases * 4)} />
               </div>
               <div>
                 <div className="mb-2 flex justify-between text-sm">
-                  <span>Field response</span>
-                  <span className="font-medium">{impact.responses} deployments</span>
+                  <span>{t("manage.fieldResponse")}</span>
+                  <span className="font-medium">{t("manage.deployments", { count: impact.responses })}</span>
                 </div>
                 <Progress value={Math.min(100, impact.responses * 6)} />
               </div>
               <div>
                 <div className="mb-2 flex justify-between text-sm">
-                  <span>Evidence follow-up</span>
-                  <span className="font-medium">{impact.followUps} packets</span>
+                  <span>{t("manage.evidence")}</span>
+                  <span className="font-medium">{t("manage.packets", { count: impact.followUps })}</span>
                 </div>
                 <Progress value={Math.min(100, impact.followUps * 8)} />
               </div>
               {membership.dedication && (
-                <p className="text-sm text-muted-foreground">Dedication: {membership.dedication}</p>
+                <p className="text-sm text-muted-foreground">{t("manage.dedication", { text: membership.dedication })}</p>
               )}
             </CardContent>
           </Card>
@@ -344,19 +353,19 @@ export default function ManagePage() {
           <Card className="bg-white">
             <CardHeader className="flex-row items-center justify-between space-y-0">
               <div>
-                <CardTitle className="font-heading text-xl">Receipts</CardTitle>
-                <CardDescription>Mock charges stored on this device.</CardDescription>
+                <CardTitle className="font-heading text-xl">{t("manage.receipts")}</CardTitle>
+                <CardDescription>{t("manage.receiptsBody")}</CardDescription>
               </div>
               {membership.status === "active" && (
                 <Button variant="outline" size="sm" onClick={addMockCharge}>
-                  Record a mock charge
+                  {t("manage.recordCharge")}
                 </Button>
               )}
             </CardHeader>
             <CardContent>
               {paidReceipts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No receipts yet. Join or record a mock charge to see giving history.
+                  {t("manage.noReceipts")}
                 </p>
               ) : (
                 <ul className="divide-y">
@@ -364,16 +373,16 @@ export default function ManagePage() {
                     <li key={receipt.id} className="flex items-center justify-between gap-4 py-3 text-sm">
                       <div>
                         <p className="font-medium">{receipt.id}</p>
-                        <p className="text-muted-foreground">{formatDate(receipt.date)}</p>
+                        <p className="text-muted-foreground">{formatDateForLocale(receipt.date, locale)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-medium">{formatMoney(receipt.amount)}</p>
+                        <p className="font-medium">{formatMoneyForLocale(receipt.amount, locale)}</p>
                         <button
                           type="button"
                           className="text-xs text-brand-slate underline-offset-2 hover:underline"
-                          onClick={() => toast.message("In production this would download a PDF receipt.")}
+                          onClick={() => toast.message(t("manage.downloadToast"))}
                         >
-                          Download
+                          {t("manage.download")}
                         </button>
                       </div>
                     </li>
@@ -386,19 +395,18 @@ export default function ManagePage() {
         <TabsContent value="settings" className="mt-4 space-y-4">
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="font-heading text-xl">Plan and payment</CardTitle>
+              <CardTitle className="font-heading text-xl">{t("manage.planAndPayment")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Dialog open={planOpen} onOpenChange={setPlanOpen}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">Change plan</Button>
+                  <Button variant="outline">{t("manage.changePlan")}</Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Switch Guardian plan</DialogTitle>
+                    <DialogTitle>{t("manage.switchPlan")}</DialogTitle>
                     <DialogDescription>
-                      Amounts are monthly. Annual members keep their interval; the next mock charge uses the
-                      new plan.
+                      {t("manage.switchPlanBody")}
                     </DialogDescription>
                   </DialogHeader>
                   <Select value={planDraft} onValueChange={(v) => setPlanDraft(v as PlanId)}>
@@ -408,13 +416,13 @@ export default function ManagePage() {
                     <SelectContent>
                       {PLANS.map((plan) => (
                         <SelectItem key={plan.id} value={plan.id}>
-                          {plan.name} · {formatMoney(plan.monthly)}/mo
+                          {planCopy(plan.id, locale).name} · {formatMoneyForLocale(plan.monthly, locale)}/{t("interval.month")}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <DialogFooter>
-                    <Button onClick={applyPlan}>Save plan</Button>
+                    <Button onClick={applyPlan}>{t("manage.savePlan")}</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -423,16 +431,16 @@ export default function ManagePage() {
                 <DialogTrigger asChild>
                   <Button variant="outline">
                     <CreditCard />
-                    Update card
+                    {t("manage.updateCard")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Replace mock card</DialogTitle>
-                    <DialogDescription>Stored only in localStorage. Use any 16 digits.</DialogDescription>
+                    <DialogTitle>{t("manage.replaceCard")}</DialogTitle>
+                    <DialogDescription>{t("manage.replaceCardBody")}</DialogDescription>
                   </DialogHeader>
                   <div>
-                    <Label htmlFor="newCard">Card number</Label>
+                    <Label htmlFor="newCard">{t("manage.cardNumber")}</Label>
                     <Input
                       id="newCard"
                       className="mt-2"
@@ -444,36 +452,35 @@ export default function ManagePage() {
                     />
                   </div>
                   <DialogFooter>
-                    <Button onClick={applyCard}>Save card</Button>
+                    <Button onClick={applyCard}>{t("manage.saveCard")}</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
 
               <Button variant="outline" onClick={pauseOrResume} disabled={membership.status === "canceled"}>
                 {membership.status === "paused" ? <Play /> : <Pause />}
-                {membership.status === "paused" ? "Resume membership" : "Pause membership"}
+                {membership.status === "paused" ? t("manage.resume") : t("manage.pause")}
               </Button>
 
               <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
                 <DialogTrigger asChild>
                   <Button variant="destructive" disabled={membership.status === "canceled"}>
-                    Cancel membership
+                    {t("manage.cancel")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Cancel this Guardian membership?</DialogTitle>
+                    <DialogTitle>{t("manage.cancelTitle")}</DialogTitle>
                     <DialogDescription>
-                      The mock record stays in the browser so you can still read receipts. You will not be
-                      billed again.
+                      {t("manage.cancelBody")}
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setCancelOpen(false)}>
-                      Keep it
+                      {t("manage.keepIt")}
                     </Button>
                     <Button variant="destructive" onClick={cancelMembership}>
-                      Yes, cancel
+                      {t("manage.yesCancel")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -483,22 +490,22 @@ export default function ManagePage() {
 
           <Card className="bg-white">
             <CardHeader>
-              <CardTitle className="font-heading text-xl">Prototype tools</CardTitle>
-              <CardDescription>These controls exist only so reviewers can reset the demo.</CardDescription>
+              <CardTitle className="font-heading text-xl">{t("manage.prototypeTools")}</CardTitle>
+              <CardDescription>{t("manage.prototypeBody")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-3 sm:flex-row">
               <Button
                 variant="outline"
                 onClick={() => {
                   clear();
-                  toast.message("Membership cleared from this browser.");
+                  toast.message(t("manage.clearedMembership"));
                 }}
               >
                 <Trash2 />
-                Clear this membership
+                {t("manage.clearMembership")}
               </Button>
               <Button asChild variant="ghost">
-                <Link href="/join">Join as someone else</Link>
+                <Link href="/join">{t("manage.joinSomeoneElse")}</Link>
               </Button>
             </CardContent>
           </Card>

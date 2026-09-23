@@ -45,7 +45,7 @@
   h2,
   h3,
   h4 {
-    font-family: var(--font-heading), system-ui, sans-serif;
+    font-family: var(--font-heading), var(--font-thai), system-ui, sans-serif;
     @apply tracking-tight text-brand-ink;
   }
 }

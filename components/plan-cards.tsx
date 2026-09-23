@@ -1,12 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PricingContent } from "@/lib/contentContext";
+import { formatMoneyForLocale, planCopy } from "@/lib/i18n";
+import { useLocale } from "@/lib/localeContext";
 import {
   annualPrice,
-  formatMoney,
   PLANS,
   type BillingInterval,
   type NamedPlanId,
@@ -28,29 +31,35 @@ export function PlanCards({
   ctaHref?: boolean;
   displayPlans?: PricingContent[];
 }) {
+  const { locale, t } = useLocale();
   const cards =
     displayPlans && displayPlans.length
       ? displayPlans.map((plan, i) => {
           const catalog = PLANS[i] ?? PLANS[1];
+          const id = JOIN_PLAN_IDS[i] ?? catalog.id;
+          const copy = planCopy(id, locale);
           return {
-            id: JOIN_PLAN_IDS[i] ?? catalog.id,
-            name: plan.name,
-            blurb: catalog.blurb,
-            perks: catalog.perks,
+            id,
+            name: locale === "th" ? copy.name : plan.name,
+            blurb: copy.blurb,
+            perks: copy.perks,
             monthly: plan.monthlyPrice,
             annual: plan.annualPrice,
             popular: plan.recommended,
           };
         })
-      : PLANS.map((plan) => ({
-          id: plan.id,
-          name: plan.name,
-          blurb: plan.blurb,
-          perks: plan.perks,
-          monthly: plan.monthly,
-          annual: annualPrice(plan.monthly),
-          popular: Boolean(plan.popular),
-        }));
+      : PLANS.map((plan) => {
+          const copy = planCopy(plan.id, locale);
+          return {
+            id: plan.id,
+            name: copy.name,
+            blurb: copy.blurb,
+            perks: copy.perks,
+            monthly: plan.monthly,
+            annual: annualPrice(plan.monthly),
+            popular: Boolean(plan.popular),
+          };
+        });
 
   return (
     <div className="grid gap-5 md:grid-cols-3">
@@ -70,20 +79,20 @@ export function PlanCards({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle className="font-heading text-2xl">{plan.name}</CardTitle>
                 {plan.popular && (
-                  <Badge className="bg-brand-orange hover:bg-brand-deep">Recommended</Badge>
+                  <Badge className="bg-brand-orange hover:bg-brand-deep">{t("landing.recommended")}</Badge>
                 )}
               </div>
               <CardDescription>{plan.blurb}</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 p-6 pt-0">
               <p className="font-heading text-3xl font-extrabold text-brand-ink sm:text-4xl">
-                {formatMoney(price)}
+                {formatMoneyForLocale(price, locale)}
                 <span className="ml-1 text-base font-medium text-muted-foreground">
-                  /{interval === "annual" ? "year" : "month"}
+                  /{interval === "annual" ? t("interval.year") : t("interval.month")}
                 </span>
               </p>
               {interval === "annual" && (
-                <p className="mt-1 text-xs text-muted-foreground">Two months free versus monthly giving.</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("landing.twoMonthsFree")}</p>
               )}
               <ul className="mt-5 space-y-2 text-sm">
                 {plan.perks.map((perk) => (
@@ -97,7 +106,7 @@ export function PlanCards({
             <CardFooter className="p-6 pt-0">
               {ctaHref && !onSelect ? (
                 <Button asChild className="w-full" size="lg">
-                  <Link href={`/join?plan=${plan.id}&interval=${interval}`}>Choose this plan</Link>
+                  <Link href={`/join?plan=${plan.id}&interval=${interval}`}>{t("landing.choosePlan")}</Link>
                 </Button>
               ) : (
                 <Button
@@ -107,7 +116,7 @@ export function PlanCards({
                   className="w-full"
                   onClick={() => onSelect?.(plan.id)}
                 >
-                  {selected ? "Selected" : "Choose this plan"}
+                  {selected ? t("landing.selected") : t("landing.choosePlan")}
                 </Button>
               )}
             </CardFooter>

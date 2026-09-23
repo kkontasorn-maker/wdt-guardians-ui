@@ -1,22 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useLocale } from "@/lib/localeContext";
 import { cn } from "@/lib/utils";
 
 export function LanguageToggle() {
-  const [lang, setLang] = useState<"TH" | "EN">("EN");
+  const { locale, setLocale, t } = useLocale();
+  const lang = locale === "th" ? "TH" : "EN";
 
   return (
     <div
       className="inline-flex h-11 items-center rounded-full border border-border bg-white text-xs font-semibold"
       role="group"
-      aria-label="Language (visual only)"
+      aria-label={t("header.language")}
     >
       {(["TH", "EN"] as const).map((code) => (
         <button
           key={code}
           type="button"
-          onClick={() => setLang(code)}
+          onClick={() => setLocale(code === "TH" ? "th" : "en")}
           aria-pressed={lang === code}
           className={cn(
             "inline-flex h-11 min-h-11 min-w-11 items-center justify-center rounded-full px-3 transition-colors",

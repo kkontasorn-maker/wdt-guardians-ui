@@ -12,10 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { useMembership } from "@/lib/hooks";
+import { formatMoneyForLocale, paymentCopy, planCopy } from "@/lib/i18n";
+import { useLocale } from "@/lib/localeContext";
 import {
   addInterval,
   annualPrice,
-  formatMoney,
   generateMemberId,
   generateReceiptId,
   PAYMENT_METHODS,
@@ -28,8 +29,8 @@ import {
 } from "@/lib/membership";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Choose plan", "Guardian details", "Payment"] as const;
-const STEP_SHORT = ["Plan", "Details", "Pay"] as const;
+const STEPS = ["join.stepPlan", "join.stepDetails", "join.stepPay"] as const;
+const STEP_SHORT = ["join.stepPlanShort", "join.stepDetailsShort", "join.stepPayShort"] as const;
 
 function isNamedPlanId(value: string | null): value is NamedPlanId {
   return value === "wdt199" || value === "wdt399" || value === "wdt999";
@@ -48,32 +49,36 @@ function OrderSummary({
   planId: NamedPlanId;
   interval: BillingInterval;
 }) {
+  const { locale, t } = useLocale();
   const plan = planById(planId);
+  const copy = planCopy(planId, locale);
   const charge = periodAmount(plan.monthly, interval);
 
   return (
     <aside className="h-fit rounded-2xl border border-border/80 bg-white p-5 shadow-sm sm:p-6">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">Summary</p>
-      <h2 className="mt-2 text-xl font-extrabold">{plan.name}</h2>
-      <p className="mt-2 text-sm text-muted-foreground">{plan.blurb}</p>
+      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">{t("join.summary")}</p>
+      <h2 className="mt-2 text-xl font-extrabold">{copy.name}</h2>
+      <p className="mt-2 text-sm text-muted-foreground">{copy.blurb}</p>
       <Separator className="my-5" />
       <dl className="space-y-3 text-sm">
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Billing</dt>
-          <dd className="font-medium capitalize">{interval}</dd>
+          <dt className="text-muted-foreground">{t("join.billing")}</dt>
+          <dd className="font-medium">{t(`interval.${interval}`)}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Monthly</dt>
-          <dd className="font-medium">{formatMoney(plan.monthly)}</dd>
+          <dt className="text-muted-foreground">{t("join.monthly")}</dt>
+          <dd className="font-medium">{formatMoneyForLocale(plan.monthly, locale)}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt className="text-muted-foreground">Annual</dt>
-          <dd className="font-medium">{formatMoney(annualPrice(plan.monthly))}</dd>
+          <dt className="text-muted-foreground">{t("join.annual")}</dt>
+          <dd className="font-medium">{formatMoneyForLocale(annualPrice(plan.monthly), locale)}</dd>
         </div>
       </dl>
       <div className="mt-5 flex items-end justify-between gap-3">
-        <p className="text-sm font-medium text-muted-foreground">Due today</p>
-        <p className="font-heading text-2xl font-extrabold text-brand-ink sm:text-3xl">{formatMoney(charge)}</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("join.dueToday")}</p>
+        <p className="font-heading text-2xl font-extrabold text-brand-ink sm:text-3xl">
+          {formatMoneyForLocale(charge, locale)}
+        </p>
       </div>
     </aside>
   );
@@ -83,6 +88,7 @@ export function JoinForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { save } = useMembership();
+  const { locale, t } = useLocale();
 
   const [step, setStep] = useState(0);
   const [planId, setPlanId] = useState<NamedPlanId | null>(null);
@@ -117,17 +123,17 @@ export function JoinForm() {
 
   function validateDetails() {
     const next: Record<string, string> = {};
-    if (!firstName.trim()) next.firstName = "First name is required.";
-    if (!lastName.trim()) next.lastName = "Last name is required.";
+    if (!firstName.trim()) next.firstName = t("join.errFirstName");
+    if (!lastName.trim()) next.lastName = t("join.errLastName");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      next.email = "Enter a valid email.";
+      next.email = t("join.errEmail");
     }
     const digits = phone.replace(/\D/g, "");
     if (digits.length < 9 || digits.length > 10) {
-      next.phone = "Enter a valid phone number.";
+      next.phone = t("join.errPhone");
     }
-    if (!acceptTerms) next.acceptTerms = "Accept the terms to continue.";
-    if (!authorizeBilling) next.authorizeBilling = "Authorize recurring billing to continue.";
+    if (!acceptTerms) next.acceptTerms = t("join.errTerms");
+    if (!authorizeBilling) next.authorizeBilling = t("join.errBilling");
     setFieldErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -179,10 +185,10 @@ export function JoinForm() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 pb-32 pt-8 sm:px-6 sm:pb-16 sm:pt-16">
-      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">Join</p>
-      <h1 className="mt-3 text-3xl font-extrabold sm:text-4xl">Become a Guardian.</h1>
+      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-orange">{t("join.kicker")}</p>
+      <h1 className="mt-3 text-3xl font-extrabold sm:text-4xl">{t("join.headline")}</h1>
       <p className="mt-3 max-w-2xl text-muted-foreground">
-        Recurring support in Thai baht. Pause or cancel any time from the member portal.
+        {t("join.subhead")}
       </p>
 
       <div className="mt-10">
@@ -201,8 +207,8 @@ export function JoinForm() {
             >
               <span className="font-heading font-extrabold text-brand-orange">{i + 1}</span>
               <span className="ml-1.5 truncate sm:ml-2">
-                <span className="sm:hidden">{STEP_SHORT[i]}</span>
-                <span className="hidden sm:inline">{label}</span>
+                <span className="sm:hidden">{t(STEP_SHORT[i])}</span>
+                <span className="hidden sm:inline">{t(label)}</span>
               </span>
             </li>
           ))}
@@ -215,9 +221,9 @@ export function JoinForm() {
           <div>
             <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <div>
-                <h2 className="text-2xl font-extrabold">Choose your plan</h2>
+                <h2 className="text-2xl font-extrabold">{t("join.chooseHeadline")}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Annual giving includes two months free. Select a plan to continue.
+                  {t("join.chooseBody")}
                 </p>
               </div>
               <div className="grid w-full grid-cols-2 gap-1 rounded-full border border-border bg-white p-1 sm:inline-flex sm:w-auto">
@@ -232,7 +238,7 @@ export function JoinForm() {
                     )}
                     onClick={() => setInterval(value)}
                   >
-                    {value}
+                    {t(`interval.${value}`)}
                   </Button>
                 ))}
               </div>
@@ -241,6 +247,7 @@ export function JoinForm() {
             <div className="mt-6 grid gap-4 sm:mt-8 sm:gap-5 md:grid-cols-3">
               {PLANS.map((plan) => {
                 const selected = planId === plan.id;
+                const copy = planCopy(plan.id, locale);
                 return (
                   <button
                     key={plan.id}
@@ -257,24 +264,24 @@ export function JoinForm() {
                     >
                       <CardHeader className="space-y-3 p-6">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <CardTitle className="font-heading text-2xl">{plan.name}</CardTitle>
+                          <CardTitle className="font-heading text-2xl">{copy.name}</CardTitle>
                           {plan.popular && (
-                            <Badge className="bg-brand-orange hover:bg-brand-deep">Recommended</Badge>
+                            <Badge className="bg-brand-orange hover:bg-brand-deep">{t("landing.recommended")}</Badge>
                           )}
                         </div>
-                        <CardDescription>{plan.blurb}</CardDescription>
+                        <CardDescription>{copy.blurb}</CardDescription>
                       </CardHeader>
                       <CardContent className="p-6 pt-0">
                         <p className="font-heading text-3xl font-extrabold text-brand-ink">
-                          {formatMoney(plan.monthly)}
-                          <span className="ml-1 text-base font-medium text-muted-foreground">/month</span>
+                          {formatMoneyForLocale(plan.monthly, locale)}
+                          <span className="ml-1 text-base font-medium text-muted-foreground">{t("join.perMonth")}</span>
                         </p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {formatMoney(annualPrice(plan.monthly))} / year
+                          {formatMoneyForLocale(annualPrice(plan.monthly), locale)} {t("join.perYear")}
                         </p>
                         {selected && (
                           <p className="mt-4 text-sm font-medium text-brand-deep">
-                            Selected · billed {interval}
+                            {t("join.selectedBilled", { interval: t(`interval.${interval}`) })}
                           </p>
                         )}
                       </CardContent>
@@ -289,13 +296,13 @@ export function JoinForm() {
         {step === 1 && planId && (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="rounded-2xl border border-border/80 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="text-2xl font-extrabold">Guardian details</h2>
+              <h2 className="text-2xl font-extrabold">{t("join.detailsHeadline")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                We use this to send your receipt and membership notes.
+                {t("join.detailsBody")}
               </p>
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="firstName">First name</Label>
+                  <Label htmlFor="firstName">{t("join.firstName")}</Label>
                   <Input
                     id="firstName"
                     className="mt-2 h-12"
@@ -308,7 +315,7 @@ export function JoinForm() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last name</Label>
+                  <Label htmlFor="lastName">{t("join.lastName")}</Label>
                   <Input
                     id="lastName"
                     className="mt-2 h-12"
@@ -321,7 +328,7 @@ export function JoinForm() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("join.email")}</Label>
                   <Input
                     id="email"
                     className="mt-2 h-12"
@@ -335,7 +342,7 @@ export function JoinForm() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone">{t("join.phone")}</Label>
                   <Input
                     id="phone"
                     className="mt-2 h-12"
@@ -353,7 +360,7 @@ export function JoinForm() {
               <div className="mt-6 space-y-2">
                 <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 py-2 text-sm">
                   <Checkbox checked={acceptTerms} onCheckedChange={(v) => setAcceptTerms(Boolean(v))} />
-                  <span>Accept terms</span>
+                  <span>{t("join.acceptTerms")}</span>
                 </label>
                 {fieldErrors.acceptTerms && (
                   <p className="text-sm text-destructive">{fieldErrors.acceptTerms}</p>
@@ -363,7 +370,7 @@ export function JoinForm() {
                     checked={authorizeBilling}
                     onCheckedChange={(v) => setAuthorizeBilling(Boolean(v))}
                   />
-                  <span>Authorize recurring billing</span>
+                  <span>{t("join.authorizeBilling")}</span>
                 </label>
                 {fieldErrors.authorizeBilling && (
                   <p className="text-sm text-destructive">{fieldErrors.authorizeBilling}</p>
@@ -377,13 +384,14 @@ export function JoinForm() {
         {step === 2 && planId && (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="rounded-2xl border border-border/80 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="text-2xl font-extrabold">Payment</h2>
+              <h2 className="text-2xl font-extrabold">{t("join.payHeadline")}</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Choose how you would like each renewal to be collected.
+                {t("join.payBody")}
               </p>
               <div className="mt-6 grid gap-4">
                 {PAYMENT_METHODS.map((method) => {
                   const selected = paymentMethod === method.id;
+                  const copy = paymentCopy(method.id, locale);
                   const Icon =
                     method.id === "card" ? CreditCard : method.id === "bank" ? Building2 : QrCode;
                   return (
@@ -402,9 +410,9 @@ export function JoinForm() {
                         <Icon className="h-5 w-5" />
                       </span>
                       <span>
-                        <span className="block font-heading text-lg font-extrabold">{method.name}</span>
+                        <span className="block font-heading text-lg font-extrabold">{copy.name}</span>
                         <span className="mt-1 block text-sm text-muted-foreground">
-                          {method.description}
+                          {copy.description}
                         </span>
                       </span>
                     </button>
@@ -426,7 +434,7 @@ export function JoinForm() {
             disabled={step === 0 || submitting}
             onClick={() => setStep((s) => Math.max(0, s - 1))}
           >
-            Back
+            {t("join.back")}
           </Button>
           {step < 2 ? (
             <Button
@@ -436,7 +444,7 @@ export function JoinForm() {
               onClick={goNext}
               disabled={(step === 0 && !planId) || (step === 1 && (!acceptTerms || !authorizeBilling))}
             >
-              Continue
+              {t("join.continue")}
             </Button>
           ) : (
             <Button
@@ -447,7 +455,7 @@ export function JoinForm() {
               disabled={submitting || !paymentMethod}
             >
               {submitting && <Loader2 className="animate-spin" />}
-              {submitting ? "Confirming…" : "Confirm membership"}
+              {submitting ? t("join.confirming") : t("join.confirm")}
             </Button>
           )}
         </div>

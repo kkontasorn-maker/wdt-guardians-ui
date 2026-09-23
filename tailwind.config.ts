@@ -53,8 +53,8 @@ const config: Config = {
         ring: "hsl(var(--ring))",
       },
       fontFamily: {
-        heading: ["var(--font-heading)", "system-ui", "sans-serif"],
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "var(--font-thai)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "var(--font-thai)", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

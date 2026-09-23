@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
+import { Archivo, Inter, Noto_Sans_Thai } from "next/font/google";
 import { ContentProvider } from "@/lib/contentContext";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
@@ -18,6 +18,13 @@ const inter = Inter({
   display: "swap",
 });
 
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai", "latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-thai",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "WDT Guardians",
@@ -33,8 +40,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${archivo.variable} ${inter.variable} min-h-screen font-sans antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${archivo.variable} ${inter.variable} ${notoSansThai.variable} min-h-screen font-sans antialiased`}
+      >
         <ContentProvider>
           {children}
           <Toaster />
