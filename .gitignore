@@ -29,7 +29,13 @@ yarn-error.log*
 .next-dev.log
 
 # local env files
+.env
 .env*.local
+
+# local sqlite
+/data/
+*.sqlite
+*.db
 
 # vercel
 .vercel
