@@ -143,6 +143,13 @@ function PromptPayWaitInner() {
         })}
       </p>
 
+      <ol className="mt-5 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+        <li className="sm:hidden">{t("join.promptpayStepPhone1")}</li>
+        <li className="sm:hidden">{t("join.promptpayStepPhone2")}</li>
+        <li className="hidden sm:list-item">{t("join.promptpayStepDesktop1")}</li>
+        <li className="hidden sm:list-item">{t("join.promptpayStepDesktop2")}</li>
+      </ol>
+
       <div className="mt-8 flex flex-col items-center rounded-2xl border border-border/80 bg-white p-6 shadow-sm">
         {qrUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

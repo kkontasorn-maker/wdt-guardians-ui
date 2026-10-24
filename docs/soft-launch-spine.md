@@ -73,6 +73,16 @@ With `NEXT_PUBLIC_OMISE_PUBLIC_KEY` + secret key set, `/join` (card) opens Omise
 
 Public webhook URL (Vercel) is required for reliable PromptPay; localhost alone will not receive Omise events.
 
+## Mobile Banking join (bank app deep link)
+
+Cinema-style flow: pick SCB / K PLUS / KMA / BBL / Krungthai NEXT → Omise `authorize_uri` opens the bank app → return to `/join/mobile-banking` → poll until paid.
+
+1. `/join` → Bank app → choose bank → `POST /api/membership/join` → `POST /api/membership/mobile-banking`
+2. Browser redirects to `authorizeUri` (test mode: Omise simulate Successful)
+3. Return page polls `GET /api/membership/charges/:id`
+
+Each bank method must be **enabled on the Omise merchant** (email support@omise.co if 402 / method unavailable).
+
 ## What still needs humans
 
 - WDT official Omise merchant (swap keys when ready)

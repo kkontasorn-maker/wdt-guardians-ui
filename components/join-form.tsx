@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CreditCard, Loader2, QrCode } from "lucide-react";
+import { CreditCard, Loader2, QrCode, Smartphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import {
   type NamedPlanId,
   type PaymentMethod,
 } from "@/lib/membership";
+import { MOBILE_BANKS, type MobileBankId } from "@/lib/spine/mobile-banks";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["join.stepPlan", "join.stepDetails", "join.stepPay"] as const;
@@ -39,6 +40,7 @@ function isNamedPlanId(value: string | null): value is NamedPlanId {
 function paymentBrand(method: PaymentMethod) {
   if (method === "bank") return "Bank debit";
   if (method === "promptpay") return "PromptPay";
+  if (method === "mobile_banking") return "Bank app";
   return "Card";
 }
 
@@ -100,6 +102,7 @@ export function JoinForm() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [authorizeBilling, setAuthorizeBilling] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [mobileBankId, setMobileBankId] = useState<MobileBankId | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
@@ -236,6 +239,96 @@ export function JoinForm() {
             : [],
         });
         router.push("/join/success");
+        return;
+      }
+
+      // Soft Launch: Mobile Banking → authorize_uri deep link into bank app.
+      if (paymentMethod === "mobile_banking" && publicKey) {
+        if (!mobileBankId) {
+          throw new Error(t("join.errMobileBank"));
+        }
+
+        const joinRes = await fetch("/api/membership/join", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            phone: phone.replace(/\s/g, ""),
+            planId,
+            interval,
+            locale,
+            founding: true,
+          }),
+        });
+        const joinJson = (await joinRes.json()) as {
+          error?: string;
+          guardianId?: string;
+          subscriptionId?: string;
+          paymentAttemptId?: string;
+          amountThb?: number;
+        };
+        if (!joinRes.ok || !joinJson.subscriptionId || !joinJson.guardianId) {
+          throw new Error(joinJson.error ?? "Could not create pending membership");
+        }
+
+        const origin = window.location.origin;
+        const returnQs = new URLSearchParams({
+          guardianId: joinJson.guardianId,
+          subscriptionId: joinJson.subscriptionId,
+          amountThb: String(joinJson.amountThb ?? charge),
+          planId,
+          interval,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.replace(/\s/g, ""),
+          bankId: mobileBankId,
+        });
+
+        const mbRes = await fetch("/api/membership/mobile-banking", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            subscriptionId: joinJson.subscriptionId,
+            paymentAttemptId: joinJson.paymentAttemptId,
+            bankId: mobileBankId,
+            returnUri: `${origin}/join/mobile-banking?${returnQs.toString()}`,
+          }),
+        });
+        const mbJson = (await mbRes.json()) as {
+          error?: string;
+          chargeId?: string;
+          authorizeUri?: string;
+          amountThb?: number;
+        };
+        if (!mbRes.ok || !mbJson.chargeId || !mbJson.authorizeUri) {
+          throw new Error(mbJson.error ?? "Could not open bank app payment");
+        }
+
+        try {
+          sessionStorage.setItem(
+            "wdt_mb_return",
+            JSON.stringify({
+              chargeId: mbJson.chargeId,
+              guardianId: joinJson.guardianId,
+              subscriptionId: joinJson.subscriptionId,
+              amountThb: mbJson.amountThb ?? joinJson.amountThb ?? charge,
+              planId,
+              interval,
+              firstName: firstName.trim(),
+              lastName: lastName.trim(),
+              email: email.trim().toLowerCase(),
+              phone: phone.replace(/\s/g, ""),
+              bankId: mobileBankId,
+            })
+          );
+        } catch {
+          /* private mode */
+        }
+
+        window.location.href = mbJson.authorizeUri;
         return;
       }
 
@@ -550,12 +643,20 @@ export function JoinForm() {
                 {PAYMENT_METHODS.map((method) => {
                   const selected = paymentMethod === method.id;
                   const copy = paymentCopy(method.id, locale);
-                  const Icon = method.id === "card" ? CreditCard : QrCode;
+                  const Icon =
+                    method.id === "card"
+                      ? CreditCard
+                      : method.id === "mobile_banking"
+                        ? Smartphone
+                        : QrCode;
                   return (
                     <button
                       key={method.id}
                       type="button"
-                      onClick={() => setPaymentMethod(method.id)}
+                      onClick={() => {
+                        setPaymentMethod(method.id);
+                        if (method.id !== "mobile_banking") setMobileBankId(null);
+                      }}
                       className={cn(
                         "flex min-h-[4.5rem] items-center gap-4 rounded-2xl border bg-white p-5 text-left transition",
                         selected
@@ -576,6 +677,37 @@ export function JoinForm() {
                   );
                 })}
               </div>
+
+              {paymentMethod === "mobile_banking" && (
+                <div className="mt-6">
+                  <p className="text-sm font-semibold text-brand-ink">{t("join.pickBank")}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("join.pickBankBody")}</p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    {MOBILE_BANKS.map((bank) => {
+                      const selected = mobileBankId === bank.id;
+                      const label = locale === "th" ? bank.nameTh : bank.nameEn;
+                      return (
+                        <button
+                          key={bank.id}
+                          type="button"
+                          onClick={() => setMobileBankId(bank.id)}
+                          className={cn(
+                            "rounded-xl border px-4 py-3 text-left transition",
+                            selected
+                              ? "border-brand-orange ring-2 ring-brand-orange"
+                              : "border-border/80 hover:border-brand-orange/50"
+                          )}
+                        >
+                          <span className="block font-heading font-extrabold">{label}</span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {bank.appHintEn}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
             <OrderSummary planId={planId} interval={interval} />
           </div>
@@ -609,7 +741,11 @@ export function JoinForm() {
               size="lg"
               className="min-w-0 flex-1 sm:w-auto sm:flex-none"
               onClick={confirmMembership}
-              disabled={submitting || !paymentMethod}
+              disabled={
+                submitting ||
+                !paymentMethod ||
+                (paymentMethod === "mobile_banking" && !mobileBankId)
+              }
             >
               {submitting && <Loader2 className="animate-spin" />}
               {submitting ? t("join.confirming") : t("join.confirm")}

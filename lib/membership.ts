@@ -4,7 +4,7 @@ export type PlanId = "wdt199" | "wdt399" | "wdt999" | "custom";
 export type NamedPlanId = Exclude<PlanId, "custom">;
 export type BillingInterval = "monthly" | "annual";
 export type MembershipStatus = "active" | "paused" | "canceled";
-export type PaymentMethod = "card" | "bank" | "promptpay";
+export type PaymentMethod = "card" | "bank" | "promptpay" | "mobile_banking";
 
 export type Plan = {
   id: NamedPlanId;
@@ -85,7 +85,7 @@ export const PLANS: Plan[] = [
   },
 ];
 
-/** Soft Launch join options — card + PromptPay only (bank debit not offered). */
+/** Soft Launch join options — card, PromptPay QR, Mobile Banking deep link. */
 export const PAYMENT_METHODS: {
   id: Exclude<PaymentMethod, "bank">;
   name: string;
@@ -100,6 +100,11 @@ export const PAYMENT_METHODS: {
     id: "promptpay",
     name: "PromptPay",
     description: "Pay from any PromptPay-linked bank app when each renewal is due.",
+  },
+  {
+    id: "mobile_banking",
+    name: "Bank app",
+    description: "Open your Thai bank app to approve payment — like booking a movie ticket.",
   },
 ];
 

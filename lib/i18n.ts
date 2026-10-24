@@ -124,6 +124,11 @@ export const messages: Record<Locale, Dict> = {
         description: "Pay from any PromptPay-linked bank app when each renewal is due.",
         short: "PromptPay",
       },
+      mobile_banking: {
+        name: "Bank app",
+        description: "Open your Thai bank app to approve payment — like booking a movie ticket.",
+        short: "Bank app",
+      },
     },
     join: {
       kicker: "Join",
@@ -166,12 +171,30 @@ export const messages: Record<Locale, Dict> = {
       confirming: "Confirming…",
       confirm: "Confirm membership",
       promptpayHeadline: "Scan to pay with PromptPay",
-      promptpayBody: "Open your bank app and scan this QR for {amount}. Stay on this page until payment confirms.",
+      promptpayBody: "Pay {amount} with PromptPay. Stay on this page until payment confirms.",
+      promptpayStepPhone1: "On this phone: screenshot the QR below.",
+      promptpayStepPhone2: "Open your bank app → PromptPay → pay from album / screenshot.",
+      promptpayStepDesktop1: "On another phone: open your bank app → PromptPay → Scan.",
+      promptpayStepDesktop2: "Point the camera at this QR and confirm the amount.",
       promptpayWaiting: "Waiting for PromptPay confirmation",
       promptpayHint:
         "You can leave after paying — activation also arrives via Omise webhook. Keep your email handy for /manage/login.",
       promptpayMissing: "Missing PromptPay session. Start again from Join.",
       promptpayPollError: "Could not check payment status. Retry in a moment.",
+      pickBank: "Choose your bank app",
+      pickBankBody: "We’ll open that bank’s app so you can approve the payment.",
+      errMobileBank: "Select a bank app to continue.",
+      mobileBankKicker: "Bank app",
+      mobileBankHeadline: "Approve payment in your bank app",
+      mobileBankBody: "Complete {amount} in {bank}. This page waits for confirmation.",
+      mobileBankWaiting: "Waiting for bank confirmation",
+      mobileBankStep1: "Your bank app should open (or ask to open).",
+      mobileBankStep2: "Log in and approve the WDT Guardians charge.",
+      mobileBankStep3: "Return here — we activate your Guardian ID when Omise confirms.",
+      mobileBankHint:
+        "Test mode: Omise’s authorize page can mark the charge Successful. Keep email for /manage/login.",
+      mobileBankMissing: "Missing bank-app session. Start again from Join.",
+      mobileBankPollError: "Could not check payment status. Retry in a moment.",
     },
     success: {
       loadErrorHeadline: "We could not load your confirmation",
@@ -385,6 +408,11 @@ export const messages: Record<Locale, Dict> = {
         description: "จ่ายจากแอปธนาคารที่ผูกพร้อมเพย์เมื่อถึงรอบต่ออายุ",
         short: "พร้อมเพย์",
       },
+      mobile_banking: {
+        name: "แอปธนาคาร",
+        description: "เปิดแอปธนาคารไทยเพื่ออนุมัติการจ่าย — แบบจองตั๋วหนัง",
+        short: "แอปธนาคาร",
+      },
     },
     join: {
       kicker: "สมัคร",
@@ -427,12 +455,30 @@ export const messages: Record<Locale, Dict> = {
       confirming: "กำลังยืนยัน…",
       confirm: "ยืนยันสมาชิกภาพ",
       promptpayHeadline: "สแกนจ่ายด้วยพร้อมเพย์",
-      promptpayBody: "เปิดแอปธนาคารแล้วสแกน QR นี้เป็นจำนวน {amount} อยู่หน้านี้จนกว่าจะยืนยันการชำระ",
+      promptpayBody: "จ่าย {amount} ด้วยพร้อมเพย์ อยู่หน้านี้จนกว่าจะยืนยันการชำระ",
+      promptpayStepPhone1: "บนมือถือเครื่องนี้: แคปหน้าจอ QR ด้านล่าง",
+      promptpayStepPhone2: "เปิดแอปธนาคาร → พร้อมเพย์ → จ่ายจากอัลบั้ม/ภาพหน้าจอ",
+      promptpayStepDesktop1: "บนมือถืออีกเครื่อง: เปิดแอปธนาคาร → พร้อมเพย์ → สแกน",
+      promptpayStepDesktop2: "เล็งกล้องที่ QR นี้แล้วยืนยันจำนวนเงิน",
       promptpayWaiting: "รอการยืนยันจากพร้อมเพย์",
       promptpayHint:
         "จ่ายแล้วออกจากหน้านี้ได้ — ระบบจะเปิดสมาชิกเมื่อ Omise ยืนยัน เก็บอีเมลไว้เข้า /manage/login",
       promptpayMissing: "ไม่พบเซสชันพร้อมเพย์ กรุณาสมัครใหม่จากหน้า Join",
       promptpayPollError: "ตรวจสถานะการชำระไม่ได้ ลองใหม่ในอีกสักครู่",
+      pickBank: "เลือกแอปธนาคาร",
+      pickBankBody: "เราจะเปิดแอปธนาคารนั้นให้คุณอนุมัติการจ่าย",
+      errMobileBank: "เลือกแอปธนาคารก่อนไปต่อ",
+      mobileBankKicker: "แอปธนาคาร",
+      mobileBankHeadline: "อนุมัติการจ่ายในแอปธนาคาร",
+      mobileBankBody: "ชำระ {amount} ใน {bank} หน้านี้จะรอการยืนยัน",
+      mobileBankWaiting: "รอการยืนยันจากธนาคาร",
+      mobileBankStep1: "แอปธนาคารควรเปิดขึ้น (หรือถามให้เปิด)",
+      mobileBankStep2: "เข้าสู่ระบบแล้วอนุมัติรายการ WDT Guardians",
+      mobileBankStep3: "กลับมาที่นี่ — เราจะเปิดรหัสกาเดียนเมื่อ Omise ยืนยัน",
+      mobileBankHint:
+        "โหมดทดสอบ: หน้า authorize ของ Omise สามารถกด Successful ได้ เก็บอีเมลไว้เข้า /manage/login",
+      mobileBankMissing: "ไม่พบเซสชันแอปธนาคาร กรุณาสมัครใหม่จากหน้า Join",
+      mobileBankPollError: "ตรวจสถานะการชำระไม่ได้ ลองใหม่ในอีกสักครู่",
     },
     success: {
       loadErrorHeadline: "โหลดหน้ายืนยันไม่ได้",
@@ -648,6 +694,7 @@ export function paymentCopy(id: PaymentMethod, locale: Locale) {
 export function paymentBrandLabel(brand: string, locale: Locale) {
   if (brand === "Bank debit") return translate(locale, "payment.bank.short");
   if (brand === "PromptPay") return translate(locale, "payment.promptpay.short");
+  if (brand === "Bank app") return translate(locale, "payment.mobile_banking.short");
   if (brand === "Card") return translate(locale, "payment.card.short");
   return brand;
 }
