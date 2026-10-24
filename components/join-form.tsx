@@ -227,6 +227,7 @@ export function JoinForm() {
           instagram: "",
           lineId: "",
           whatsapp: "",
+          photoDataUrl: "",
           receipts: chargeJson.paid
             ? [
                 {
@@ -330,6 +331,7 @@ export function JoinForm() {
         instagram: "",
         lineId: "",
         whatsapp: "",
+        photoDataUrl: "",
         receipts: [
           {
             id: generateReceiptId(),

@@ -16,6 +16,7 @@ export type MemberProfile = {
   instagram?: string;
   lineId?: string;
   whatsapp?: string;
+  photoDataUrl?: string;
   updatedAt: string;
 };
 

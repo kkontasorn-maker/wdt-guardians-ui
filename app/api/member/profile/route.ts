@@ -23,7 +23,10 @@ type Body = {
   instagram?: string;
   lineId?: string;
   whatsapp?: string;
+  photoDataUrl?: string;
 };
+
+const MAX_PHOTO_CHARS = 400_000;
 
 /**
  * PATCH /api/member/profile
@@ -58,6 +61,16 @@ export async function PATCH(request: Request) {
   const instagram = (body.instagram ?? "").trim();
   const lineId = (body.lineId ?? "").trim();
   const whatsapp = (body.whatsapp ?? "").trim();
+  const photoRaw = body.photoDataUrl ?? "";
+  const photoDataUrl =
+    typeof photoRaw === "string" &&
+    (photoRaw === "" ||
+      (photoRaw.startsWith("data:image/") && photoRaw.length <= MAX_PHOTO_CHARS))
+      ? photoRaw
+      : undefined;
+  if (photoRaw && photoDataUrl === undefined) {
+    return NextResponse.json({ error: "photo too large or invalid" }, { status: 400 });
+  }
 
   upsertMemberProfile({
     guardianId: session.guardianId,
@@ -69,6 +82,7 @@ export async function PATCH(request: Request) {
     instagram,
     lineId,
     whatsapp,
+    ...(photoDataUrl !== undefined ? { photoDataUrl } : {}),
   });
 
   try {
@@ -127,6 +141,10 @@ export async function PATCH(request: Request) {
       instagram,
       lineId,
       whatsapp,
+      photoDataUrl:
+        photoDataUrl !== undefined
+          ? photoDataUrl
+          : refreshed.membership.photoDataUrl ?? "",
     },
   });
   res.headers.set("Set-Cookie", memberCookieHeader(newToken));
