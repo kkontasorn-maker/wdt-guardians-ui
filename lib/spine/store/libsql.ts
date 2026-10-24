@@ -155,6 +155,22 @@ export async function createLibsqlStore(databaseUrl: string): Promise<Membership
       return member;
     },
 
+    async updateMember(member) {
+      await db
+        .update(schema.members)
+        .set({
+          email: member.email,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          phone: member.phone,
+          locale: member.locale,
+          founding: member.founding,
+          updatedAt: member.updatedAt,
+        })
+        .where(eq(schema.members.id, member.id));
+      return member;
+    },
+
     async getMemberById(id) {
       const rows = await db
         .select()
