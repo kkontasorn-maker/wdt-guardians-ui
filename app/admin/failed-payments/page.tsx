@@ -1,13 +1,19 @@
+"use client";
+
+import { useMemo } from "react";
 import { AdminTable } from "@/components/admin/admin-table";
 import { RetryStageTracker } from "@/components/admin/retry-stage-tracker";
 import { Badge } from "@/components/ui/badge";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAdminBook } from "@/lib/admin-book";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
 import { displayAmount } from "@/lib/mockData";
 
 export default function AdminFailedPaymentsPage() {
-  const { failedPayments: FAILED_PAYMENTS } = getAdminBook();
-  const rows = [...FAILED_PAYMENTS].sort((a, b) => b.failedOn.localeCompare(a.failedOn));
+  const { book } = useAdminBook();
+  const rows = useMemo(() => {
+    const list = book?.failedPayments ?? [];
+    return [...list].sort((a, b) => b.failedOn.localeCompare(a.failedOn));
+  }, [book]);
 
   return (
     <div>

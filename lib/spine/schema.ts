@@ -56,6 +56,7 @@ export const paymentAttempts = sqliteTable("payment_attempts", {
   amountThb: integer("amount_thb").notNull(),
   currency: text("currency").notNull().default("THB"),
   status: text("status").notNull().default("created"),
+  paymentMethod: text("payment_method"),
   gatewayChargeId: text("gateway_charge_id"),
   /** Unique when set — webhook idempotency key. */
   gatewayEventId: text("gateway_event_id").unique(),

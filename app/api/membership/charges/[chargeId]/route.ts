@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { upsertLiveMember } from "@/lib/admin-book";
+import { upsertLiveMember, upsertLivePayment } from "@/lib/admin-book";
 import { nowIso } from "@/lib/spine/ids";
 import { PLANS, type SpinePlanId } from "@/lib/spine/plans";
 import { getOmiseChargeStatus } from "@/lib/spine/omise-charge";
@@ -51,6 +51,7 @@ export async function GET(
   if (activated.status === "activated") {
     const member = await store.getMemberByGuardianId(activated.guardianId);
     if (member?.member && member.subscription) {
+      const ts = nowIso();
       upsertLiveMember({
         id: member.member.guardianId,
         name: `${member.member.firstName} ${member.member.lastName}`,
@@ -60,11 +61,27 @@ export async function GET(
           | "WDT 399"
           | "WDT 999",
         status: "Active",
-        joinedAt: nowIso(),
+        joinedAt: ts,
         nextRenewal: null,
         founding: member.member.founding,
         channel: "mobile",
       });
+      if (attempt) {
+        await store.updatePaymentAttempt({
+          ...attempt,
+          paymentMethod: attempt.paymentMethod ?? "promptpay",
+          status: "successful",
+          updatedAt: ts,
+        });
+        upsertLivePayment({
+          id: attempt.id,
+          guardianId: member.member.guardianId,
+          amount: member.subscription.amountThb,
+          method: "PromptPay",
+          status: "Success",
+          date: ts,
+        });
+      }
     }
   }
 

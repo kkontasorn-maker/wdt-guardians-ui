@@ -9,7 +9,7 @@ Scaffold for Guardians membership persistence and Omise webhook activation. **Do
 | Plan constants (`wdt199` / `wdt399` / `wdt999`, annual = 10× monthly) | `lib/spine/plans.ts` |
 | State machine `pending → active → past_due → grace → cancelled` | `lib/spine/states.ts` |
 | Drizzle SQLite schema (Member, Subscription, PaymentAttempt, AuditEvent) | `lib/spine/schema.ts` |
-| In-memory / SQLite store (`DATABASE_URL` switch) | `lib/spine/store/` |
+| In-memory / SQLite / Turso libSQL store (`DATABASE_URL` switch) | `lib/spine/store/` |
 | API stubs | `app/api/membership/*`, `app/api/webhooks/omise` |
 
 Activation **only** after a confirmed charge event (`paymentConfirmed=true` on the state machine). Client-side join success must not mark membership active.
@@ -31,6 +31,18 @@ mkdir -p data
 # in .env.local:
 # DATABASE_URL=file:./data/guardians.sqlite
 ```
+
+### Vercel Soft Launch (durable)
+
+In-memory and `file:` SQLite are **not durable** across Vercel serverless instances. Use **Turso**:
+
+1. Create a free DB at https://turso.tech
+2. Vercel env (Production):
+   - `DATABASE_URL=libsql://…turso.io`
+   - `TURSO_AUTH_TOKEN=…`
+3. Redeploy
+
+Admin **Payments / Failed Payments** merge live `payment_attempts` from the spine into the Soft Launch book (`GET /api/admin/book`).
 
 ### Smoke APIs
 
@@ -77,7 +89,8 @@ Public webhook URL (Vercel) is required for reliable PromptPay; localhost alone 
 
 - WDT official Omise merchant (swap keys when ready)
 - Thai copy review for join / receipts
-- Postgres production `DATABASE_URL` + migrations
+- Turso `DATABASE_URL` + `TURSO_AUTH_TOKEN` on Vercel (Soft Launch)
+- Postgres production adapter later
 - Public webhook URL (Vercel / tunnel) for Omise events
 - Soft Launch audience + booth venue confirmation
 
