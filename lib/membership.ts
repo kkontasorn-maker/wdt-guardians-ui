@@ -85,8 +85,9 @@ export const PLANS: Plan[] = [
   },
 ];
 
+/** Soft Launch join options — card + PromptPay only (bank debit not offered). */
 export const PAYMENT_METHODS: {
-  id: PaymentMethod;
+  id: Exclude<PaymentMethod, "bank">;
   name: string;
   description: string;
 }[] = [
@@ -94,11 +95,6 @@ export const PAYMENT_METHODS: {
     id: "card",
     name: "Credit/debit card",
     description: "Visa, Mastercard, and other major cards issued in Thailand or abroad.",
-  },
-  {
-    id: "bank",
-    name: "Automatic bank debit",
-    description: "A recurring debit from a Thai bank account on your renewal date.",
   },
   {
     id: "promptpay",

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Building2, CreditCard, Loader2, QrCode } from "lucide-react";
+import { CreditCard, Loader2, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -301,7 +301,7 @@ export function JoinForm() {
         return;
       }
 
-      // Fallback: local mock (bank, or Omise key missing)
+      // Fallback: local mock when Omise public key is missing
       await new Promise((r) => setTimeout(r, 800));
       save({
         memberId: generateMemberId(),
@@ -550,8 +550,7 @@ export function JoinForm() {
                 {PAYMENT_METHODS.map((method) => {
                   const selected = paymentMethod === method.id;
                   const copy = paymentCopy(method.id, locale);
-                  const Icon =
-                    method.id === "card" ? CreditCard : method.id === "bank" ? Building2 : QrCode;
+                  const Icon = method.id === "card" ? CreditCard : QrCode;
                   return (
                     <button
                       key={method.id}
