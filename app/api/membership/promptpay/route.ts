@@ -74,6 +74,7 @@ export async function POST(request: Request) {
   if (attempt) {
     await store.updatePaymentAttempt({
       ...attempt,
+      paymentMethod: "promptpay",
       gatewayChargeId: charge.chargeId,
       status: "pending",
       updatedAt: ts,

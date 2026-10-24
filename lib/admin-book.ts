@@ -1,7 +1,8 @@
 /**
  * Soft Launch shared admin book.
- * Seeded once from lib/mockData; live spine joins can append.
- * Persists to data/admin-book.json when possible.
+ * Seeded once from lib/mockData; live spine joins / payments can append.
+ * Persists to data/admin-book.json when possible (local). On Vercel, prefer
+ * Turso spine as source of truth — GET /api/admin/book merges live attempts.
  */
 
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "fs";
@@ -20,6 +21,7 @@ import {
   failedPaymentCount,
   pendingPaymentCount,
   recentMembers,
+  retryStageFromDays,
   type AuditEvent,
   type BoothSignupSeed,
   type CrmContact,
@@ -27,7 +29,11 @@ import {
   type MockMember,
   type MockPayment,
   type MockSubscription,
+  type PaymentMethodLabel,
+  type PaymentStatus,
 } from "@/lib/mockData";
+import type { PaymentAttemptRecord } from "@/lib/spine/types";
+import { getStore } from "@/lib/spine/store";
 
 export type AdminBook = {
   asOf: string;
@@ -227,4 +233,147 @@ export function upsertLiveMember(input: {
   cached = recompute(book);
   persist(cached);
   return cached;
+}
+
+function attemptStatusToUi(status: PaymentAttemptRecord["status"]): PaymentStatus | null {
+  if (status === "successful") return "Success";
+  if (status === "failed") return "Failed";
+  if (status === "pending" || status === "created") return "Pending";
+  return null; // ignored
+}
+
+function attemptMethodToUi(
+  method: PaymentAttemptRecord["paymentMethod"]
+): PaymentMethodLabel {
+  if (method === "promptpay") return "PromptPay";
+  return "Card";
+}
+
+function failureReasonLabel(code: string | null): FailedPayment["reason"] {
+  const c = (code ?? "").toLowerCase();
+  if (c.includes("insufficient")) return "Insufficient funds";
+  if (c.includes("expired")) return "Expired card";
+  return "Card declined";
+}
+
+function daysSince(iso: string): number {
+  const day = iso.slice(0, 10);
+  const from = Date.parse(`${day}T00:00:00`);
+  const to = Date.now();
+  return Math.max(0, Math.round((to - from) / 86_400_000));
+}
+
+/** Record a live gateway attempt in the book (idempotent by attempt id). */
+export function upsertLivePayment(input: {
+  id: string;
+  guardianId: string;
+  amount: number;
+  method: PaymentMethodLabel;
+  status: PaymentStatus;
+  date: string;
+  failureCode?: string | null;
+}): AdminBook {
+  const book = getAdminBook();
+  const date = input.date.slice(0, 10);
+  const row: MockPayment = {
+    id: input.id,
+    date,
+    guardianId: input.guardianId,
+    amount: input.amount,
+    method: input.method,
+    status: input.status,
+  };
+  const idx = book.payments.findIndex((p) => p.id === input.id);
+  if (idx >= 0) book.payments[idx] = row;
+  else book.payments.unshift(row);
+
+  if (input.status === "Failed") {
+    const days = daysSince(date);
+    const failRow: FailedPayment = {
+      id: input.id,
+      guardianId: input.guardianId,
+      amount: input.amount,
+      reason: failureReasonLabel(input.failureCode ?? null),
+      failedOn: date,
+      daysSinceFailure: days,
+      retryStage: retryStageFromDays(days),
+    };
+    const fIdx = book.failedPayments.findIndex((f) => f.id === input.id);
+    if (fIdx >= 0) book.failedPayments[fIdx] = failRow;
+    else book.failedPayments.unshift(failRow);
+  } else {
+    book.failedPayments = book.failedPayments.filter((f) => f.id !== input.id);
+  }
+
+  book.auditEvents.unshift({
+    id: `aud-pay-${Date.now()}`,
+    at: new Date().toISOString(),
+    actor: "System",
+    action: `Live payment: ${input.id} → ${input.status} (${input.guardianId})`,
+  });
+
+  cached = recompute(book);
+  persist(cached);
+  return cached;
+}
+
+/**
+ * Merge spine payment_attempts into the admin book for Payments / Failed / KPIs.
+ * Live rows win on id collision; seed demo rows remain for Soft Launch UX.
+ */
+export async function getAdminBookWithLivePayments(): Promise<AdminBook> {
+  const book = getAdminBook();
+  try {
+    const store = await getStore();
+    const attempts = await store.listPaymentAttempts();
+    if (attempts.length === 0) return book;
+
+    const livePayments: MockPayment[] = [];
+    const liveFailed: FailedPayment[] = [];
+
+    for (const attempt of attempts) {
+      const uiStatus = attemptStatusToUi(attempt.status);
+      if (!uiStatus) continue;
+      const member = await store.getMemberById(attempt.memberId);
+      const guardianId = member?.guardianId ?? "WDTG-??????";
+      const date = attempt.createdAt.slice(0, 10);
+      livePayments.push({
+        id: attempt.id,
+        date,
+        guardianId,
+        amount: attempt.amountThb,
+        method: attemptMethodToUi(attempt.paymentMethod),
+        status: uiStatus,
+      });
+      if (uiStatus === "Failed") {
+        const days = daysSince(attempt.updatedAt || attempt.createdAt);
+        liveFailed.push({
+          id: attempt.id,
+          guardianId,
+          amount: attempt.amountThb,
+          reason: failureReasonLabel(attempt.failureCode),
+          failedOn: (attempt.updatedAt || attempt.createdAt).slice(0, 10),
+          daysSinceFailure: days,
+          retryStage: retryStageFromDays(days),
+        });
+      }
+    }
+
+    const liveIds = new Set(livePayments.map((p) => p.id));
+    book.payments = [
+      ...livePayments,
+      ...book.payments.filter((p) => !liveIds.has(p.id)),
+    ];
+    const liveFailIds = new Set(liveFailed.map((f) => f.id));
+    book.failedPayments = [
+      ...liveFailed,
+      ...book.failedPayments.filter((f) => !liveFailIds.has(f.id)),
+    ];
+
+    cached = recompute(book);
+    return cached;
+  } catch (err) {
+    console.warn("[admin-book] live payment merge failed", err);
+    return book;
+  }
 }

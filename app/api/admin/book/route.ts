@@ -5,7 +5,7 @@ import {
   isAdminConfigured,
   readAdminSession,
 } from "@/lib/admin-auth";
-import { getAdminBook } from "@/lib/admin-book";
+import { getAdminBookWithLivePayments } from "@/lib/admin-book";
 
 export const runtime = "nodejs";
 
@@ -17,6 +17,6 @@ export async function GET() {
     }
   }
 
-  const book = getAdminBook();
+  const book = await getAdminBookWithLivePayments();
   return NextResponse.json(book);
 }

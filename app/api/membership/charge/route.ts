@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { upsertLiveMember } from "@/lib/admin-book";
+import { upsertLiveMember, upsertLivePayment } from "@/lib/admin-book";
 import { nowIso } from "@/lib/spine/ids";
 import { PLANS, type SpinePlanId } from "@/lib/spine/plans";
 import { createOmiseCharge, thbToSatang } from "@/lib/spine/omise-charge";
@@ -52,6 +52,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "member not found" }, { status: 404 });
   }
 
+  const attempt =
+    (body.paymentAttemptId
+      ? await store.getPaymentAttempt(body.paymentAttemptId)
+      : null) ?? (await store.findPendingAttemptBySubscription(subscription.id));
+
   const charge = await createOmiseCharge({
     token,
     amountSatang: thbToSatang(subscription.amountThb),
@@ -63,25 +68,48 @@ export async function POST(request: Request) {
     },
   });
 
+  const ts = nowIso();
+
   if (!charge.ok) {
+    if (attempt && !charge.skipped) {
+      await store.updatePaymentAttempt({
+        ...attempt,
+        paymentMethod: "card",
+        status: "failed",
+        failureCode: charge.error,
+        updatedAt: ts,
+      });
+      upsertLivePayment({
+        id: attempt.id,
+        guardianId: member.guardianId,
+        amount: subscription.amountThb,
+        method: "Card",
+        status: "Failed",
+        date: ts,
+        failureCode: charge.error,
+      });
+    }
     return NextResponse.json(
       { error: charge.error, skipped: charge.skipped ?? false },
       { status: charge.skipped ? 503 : 402 }
     );
   }
 
-  const ts = nowIso();
-  const attempt =
-    (body.paymentAttemptId
-      ? await store.getPaymentAttempt(body.paymentAttemptId)
-      : null) ?? (await store.findPendingAttemptBySubscription(subscription.id));
-
   if (attempt) {
     await store.updatePaymentAttempt({
       ...attempt,
+      paymentMethod: "card",
       gatewayChargeId: charge.chargeId,
       status: charge.paid ? "successful" : "pending",
       updatedAt: ts,
+    });
+    upsertLivePayment({
+      id: attempt.id,
+      guardianId: member.guardianId,
+      amount: subscription.amountThb,
+      method: "Card",
+      status: charge.paid ? "Success" : "Pending",
+      date: ts,
     });
   }
 

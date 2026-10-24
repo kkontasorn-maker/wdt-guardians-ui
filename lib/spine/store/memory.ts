@@ -7,7 +7,7 @@ import type {
 } from "../types";
 
 export type MembershipStore = {
-  mode: "memory" | "sqlite" | "postgres";
+  mode: "memory" | "sqlite" | "libsql" | "postgres";
   createMember(member: MemberRecord): Promise<MemberRecord>;
   updateMember(member: MemberRecord): Promise<MemberRecord>;
   getMemberByGuardianId(guardianId: string): Promise<MemberWithSubscription | null>;
@@ -27,6 +27,7 @@ export type MembershipStore = {
   findPendingAttemptBySubscription(
     subscriptionId: string
   ): Promise<PaymentAttemptRecord | null>;
+  listPaymentAttempts(): Promise<PaymentAttemptRecord[]>;
   appendAudit(event: AuditEventRecord): Promise<AuditEventRecord>;
 };
 
@@ -125,6 +126,12 @@ export function createMemoryStore(): MembershipStore {
             p.subscriptionId === subscriptionId &&
             (p.status === "created" || p.status === "pending")
         ) ?? null
+      );
+    },
+
+    async listPaymentAttempts() {
+      return Array.from(payments.values()).sort((a, b) =>
+        b.createdAt.localeCompare(a.createdAt)
       );
     },
 

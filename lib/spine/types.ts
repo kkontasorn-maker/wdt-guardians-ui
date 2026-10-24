@@ -39,6 +39,8 @@ export type PaymentAttemptStatus =
   | "failed"
   | "ignored";
 
+export type PaymentAttemptMethod = "card" | "promptpay";
+
 export type PaymentAttemptRecord = {
   id: string;
   subscriptionId: string;
@@ -46,6 +48,8 @@ export type PaymentAttemptRecord = {
   amountThb: number;
   currency: "THB";
   status: PaymentAttemptStatus;
+  /** Soft Launch channel used for this attempt. */
+  paymentMethod: PaymentAttemptMethod | null;
   /** Omise / gateway charge id when known. */
   gatewayChargeId: string | null;
   /** Omise event id for webhook idempotency. */

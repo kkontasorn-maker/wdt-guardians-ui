@@ -45,6 +45,7 @@ function ensureSchema(sqlite: Database.Database) {
       amount_thb INTEGER NOT NULL,
       currency TEXT NOT NULL DEFAULT 'THB',
       status TEXT NOT NULL DEFAULT 'created',
+      payment_method TEXT,
       gateway_charge_id TEXT,
       gateway_event_id TEXT UNIQUE,
       failure_code TEXT,
@@ -61,6 +62,11 @@ function ensureSchema(sqlite: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+  try {
+    sqlite.exec(`ALTER TABLE payment_attempts ADD COLUMN payment_method TEXT`);
+  } catch {
+    /* column already exists */
+  }
 }
 
 function rowToMember(row: typeof schema.members.$inferSelect): MemberRecord {
@@ -98,6 +104,7 @@ function rowToSub(row: typeof schema.subscriptions.$inferSelect): SubscriptionRe
 function rowToPayment(
   row: typeof schema.paymentAttempts.$inferSelect
 ): PaymentAttemptRecord {
+  const method = row.paymentMethod;
   return {
     id: row.id,
     subscriptionId: row.subscriptionId,
@@ -105,6 +112,8 @@ function rowToPayment(
     amountThb: row.amountThb,
     currency: "THB",
     status: row.status as PaymentAttemptRecord["status"],
+    paymentMethod:
+      method === "card" || method === "promptpay" ? method : null,
     gatewayChargeId: row.gatewayChargeId,
     gatewayEventId: row.gatewayEventId,
     failureCode: row.failureCode,
@@ -229,6 +238,7 @@ export function createSqliteStore(databaseUrl: string): MembershipStore {
           amountThb: attempt.amountThb,
           currency: attempt.currency,
           status: attempt.status,
+          paymentMethod: attempt.paymentMethod,
           gatewayChargeId: attempt.gatewayChargeId,
           gatewayEventId: attempt.gatewayEventId,
           failureCode: attempt.failureCode,
@@ -261,6 +271,7 @@ export function createSqliteStore(databaseUrl: string): MembershipStore {
       db.update(schema.paymentAttempts)
         .set({
           status: attempt.status,
+          paymentMethod: attempt.paymentMethod,
           gatewayChargeId: attempt.gatewayChargeId,
           gatewayEventId: attempt.gatewayEventId,
           failureCode: attempt.failureCode,
@@ -289,6 +300,13 @@ export function createSqliteStore(databaseUrl: string): MembershipStore {
           (p.status === "created" || p.status === "pending")
       );
       return match ? rowToPayment(match) : null;
+    },
+
+    async listPaymentAttempts() {
+      const rows = db.select().from(schema.paymentAttempts).all();
+      return rows
+        .map(rowToPayment)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     },
 
     async appendAudit(event) {

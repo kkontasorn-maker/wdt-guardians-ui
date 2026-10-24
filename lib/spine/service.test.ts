@@ -33,6 +33,20 @@ describe("membership service", () => {
     expect(loaded?.subscription?.status).toBe("pending");
   });
 
+  it("lists payment attempts for admin book merge", async () => {
+    const pending = await createPendingMembership({
+      email: "list@example.org",
+      firstName: "List",
+      lastName: "Pay",
+      planId: "wdt399",
+      interval: "monthly",
+    });
+    const { getStore } = await import("./store");
+    const store = await getStore();
+    const listed = await store.listPaymentAttempts();
+    expect(listed.some((p) => p.id === pending.paymentAttempt.id)).toBe(true);
+  });
+
   it("activates only after confirmed charge webhook", async () => {
     const pending = await createPendingMembership({
       email: "pay@example.org",
