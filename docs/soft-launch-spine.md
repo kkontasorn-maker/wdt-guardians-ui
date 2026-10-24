@@ -56,6 +56,11 @@ curl -s http://localhost:43127/api/membership/WDTG-xxxxxx
 3. Sign in with an allowlisted email + shared password
 4. Console reads the shared admin book (`GET /api/admin/book`, seeded + persisted under `data/`)
 
+## Member portal sign-in
+
+Guardians (not staff) sign in at `/manage/login` with **Guardian ID + join email**.
+Session cookie is separate from admin. `/manage` loads the membership from the spine/admin book when signed in; localStorage remains a fallback.
+
 ## Card join (Omise.js)
 
 With `NEXT_PUBLIC_OMISE_PUBLIC_KEY` + secret key set, `/join` (card) opens Omise’s form, sends **token only** to `POST /api/membership/charge`, activates when paid / webhook confirms.

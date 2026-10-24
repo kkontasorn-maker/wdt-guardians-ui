@@ -53,7 +53,7 @@ function statusBadge(status: Membership["status"], t: (key: string) => string) {
 }
 
 export default function ManagePage() {
-  const { membership, state, save, clear } = useMembership();
+  const { membership, state, save, clear, fromSession } = useMembership();
   const { locale, t } = useLocale();
   const [planDraft, setPlanDraft] = useState<PlanId>("wdt399");
   const [cardDraft, setCardDraft] = useState("");
@@ -121,6 +121,9 @@ export default function ManagePage() {
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Button asChild>
+            <Link href="/manage/login">{t("manage.signIn")}</Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link href="/join">{t("success.become")}</Link>
           </Button>
           <Button
@@ -232,7 +235,22 @@ export default function ManagePage() {
             {membership.memberId} · {membership.email}
           </p>
         </div>
-        {statusBadge(membership.status, t)}
+        <div className="flex flex-wrap items-center gap-2">
+          {statusBadge(membership.status, t)}
+          {(fromSession || membership.memberId) && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                await clear();
+                toast.message(t("manage.signOut"));
+              }}
+            >
+              {t("manage.signOut")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {membership.status === "canceled" && (
