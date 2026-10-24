@@ -42,6 +42,11 @@ export type Membership = {
   cardBrand: string;
   paymentMethod: PaymentMethod;
   dedication: string;
+  /** Optional social / messaging handles for Soft Launch CRM. */
+  facebook: string;
+  instagram: string;
+  lineId: string;
+  whatsapp: string;
   receipts: Receipt[];
 };
 
@@ -205,6 +210,10 @@ export function readMembership(): Membership | null {
       ...parsed,
       phone: parsed.phone ?? "",
       paymentMethod: parsed.paymentMethod ?? "card",
+      facebook: parsed.facebook ?? "",
+      instagram: parsed.instagram ?? "",
+      lineId: parsed.lineId ?? "",
+      whatsapp: parsed.whatsapp ?? "",
     };
   } catch {
     throw new Error("corrupt");
@@ -255,6 +264,10 @@ export function sampleMembership(): Membership {
     cardBrand: "Visa",
     paymentMethod: "card",
     dedication: "For the Chiang Mai street-dog desk",
+    facebook: "",
+    instagram: "",
+    lineId: "",
+    whatsapp: "",
     receipts,
   };
 }

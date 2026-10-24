@@ -1,8 +1,33 @@
 import { getAdminBook } from "@/lib/admin-book";
+import { getMemberProfile } from "@/lib/member-profiles";
 import type { Membership, PlanId } from "@/lib/membership";
 import { addInterval } from "@/lib/membership";
 import { getMemberByGuardianId } from "@/lib/spine/service";
 import type { SubscriptionStatus } from "@/lib/spine/states";
+
+function applyProfile(membership: Membership): Membership {
+  const profile = getMemberProfile(membership.memberId);
+  if (!profile) {
+    return {
+      ...membership,
+      facebook: membership.facebook ?? "",
+      instagram: membership.instagram ?? "",
+      lineId: membership.lineId ?? "",
+      whatsapp: membership.whatsapp ?? "",
+    };
+  }
+  return {
+    ...membership,
+    firstName: profile.firstName?.trim() || membership.firstName,
+    lastName: profile.lastName?.trim() || membership.lastName,
+    email: profile.email?.trim().toLowerCase() || membership.email,
+    phone: profile.phone ?? membership.phone,
+    facebook: profile.facebook ?? membership.facebook ?? "",
+    instagram: profile.instagram ?? membership.instagram ?? "",
+    lineId: profile.lineId ?? membership.lineId ?? "",
+    whatsapp: profile.whatsapp ?? membership.whatsapp ?? "",
+  };
+}
 
 function planIdFromLabel(plan: string): PlanId {
   if (plan.includes("199")) return "wdt199";
@@ -37,7 +62,12 @@ export async function findGuardianForLogin(
   if (!id || !mail) return null;
 
   const spine = await getMemberByGuardianId(id);
-  if (spine && spine.member.email.toLowerCase() === mail) {
+  const profileHint = getMemberProfile(id);
+  const spineEmailOk =
+    spine &&
+    (spine.member.email.toLowerCase() === mail ||
+      profileHint?.email?.toLowerCase() === mail);
+  if (spine && spineEmailOk) {
     const sub = spine.subscription;
     const joinedAt = spine.member.createdAt;
     const interval = sub?.interval ?? "monthly";
@@ -63,6 +93,10 @@ export async function findGuardianForLogin(
       cardBrand: "Card",
       paymentMethod: "card",
       dedication: "",
+      facebook: "",
+      instagram: "",
+      lineId: "",
+      whatsapp: "",
       receipts:
         sub?.status === "active"
           ? [
@@ -76,7 +110,12 @@ export async function findGuardianForLogin(
             ]
           : [],
     };
-    return { guardianId: id, email: mail, membership };
+    const merged = applyProfile(membership);
+    return {
+      guardianId: id,
+      email: merged.email.toLowerCase(),
+      membership: merged,
+    };
   }
 
   const book = getAdminBook();
@@ -115,8 +154,17 @@ export async function findGuardianForLogin(
     cardBrand: "Card",
     paymentMethod: "card",
     dedication: "",
+    facebook: "",
+    instagram: "",
+    lineId: "",
+    whatsapp: "",
     receipts: [],
   };
 
-  return { guardianId: id, email: mail, membership };
+  const merged = applyProfile(membership);
+  return {
+    guardianId: id,
+    email: merged.email.toLowerCase(),
+    membership: merged,
+  };
 }
