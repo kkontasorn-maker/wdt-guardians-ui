@@ -1,24 +1,29 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminTable } from "@/components/admin/admin-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { TablePagination } from "@/components/admin/table-pagination";
 import { Switch } from "@/components/ui/switch";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayDate, PAGE_SIZE, SUBSCRIPTIONS } from "@/lib/mockData";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
+import { displayDate, PAGE_SIZE } from "@/lib/mockData";
 
 export default function AdminSubscriptionsPage() {
+  const { book } = useAdminBook();
+  const SUBSCRIPTIONS = useMemo(() => book?.subscriptions ?? [], [book]);
   const [page, setPage] = useState(1);
-  const [autoRenew, setAutoRenew] = useState(() =>
-    Object.fromEntries(SUBSCRIPTIONS.map((row) => [row.id, row.autoRenew]))
-  );
+  const [autoRenew, setAutoRenew] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setAutoRenew(Object.fromEntries(SUBSCRIPTIONS.map((row) => [row.id, row.autoRenew])));
+  }, [SUBSCRIPTIONS]);
 
   const pageCount = Math.max(1, Math.ceil(SUBSCRIPTIONS.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
   const rows = useMemo(
     () => SUBSCRIPTIONS.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-    [safePage]
+    [SUBSCRIPTIONS, safePage]
   );
 
   return (

@@ -3,9 +3,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayDate, FOUNDING_CAMPAIGN, FOUNDING_MEMBERS } from "@/lib/mockData";
+import { getAdminBook } from "@/lib/admin-book";
+import { displayDate } from "@/lib/mockData";
 
 export default function AdminFoundingGuardiansPage() {
+  const { foundingCampaign: FOUNDING_CAMPAIGN, foundingMembers: FOUNDING_MEMBERS } =
+    getAdminBook();
   const percent = (FOUNDING_CAMPAIGN.confirmed / FOUNDING_CAMPAIGN.total) * 100;
 
   return (

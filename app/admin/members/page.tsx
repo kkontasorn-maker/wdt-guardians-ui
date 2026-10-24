@@ -13,9 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayDate, MEMBERS, PAGE_SIZE, type MemberStatus } from "@/lib/mockData";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
+import { displayDate, PAGE_SIZE, type MemberStatus } from "@/lib/mockData";
 
 export default function AdminMembersPage() {
+  const { book, loading } = useAdminBook();
+  const MEMBERS = useMemo(() => book?.members ?? [], [book]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | MemberStatus>("all");
   const [page, setPage] = useState(1);
@@ -28,7 +31,7 @@ export default function AdminMembersPage() {
       const matchesStatus = status === "all" || row.status === status;
       return matchesQuery && matchesStatus;
     });
-  }, [query, status]);
+  }, [MEMBERS, query, status]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -38,7 +41,7 @@ export default function AdminMembersPage() {
     <div>
       <h1 className="text-2xl font-extrabold">Members</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Working book of {MEMBERS.length} Guardians — demo data, not a live roster.
+        Working book of {loading ? "…" : MEMBERS.length} Guardians — Soft Launch shared book.
       </p>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row">

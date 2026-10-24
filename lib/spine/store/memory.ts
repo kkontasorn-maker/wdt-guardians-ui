@@ -18,9 +18,13 @@ export type MembershipStore = {
   getPaymentAttemptByGatewayEventId(
     gatewayEventId: string
   ): Promise<PaymentAttemptRecord | null>;
+  getPaymentAttempt(id: string): Promise<PaymentAttemptRecord | null>;
   updatePaymentAttempt(attempt: PaymentAttemptRecord): Promise<PaymentAttemptRecord>;
   findPendingAttemptByChargeId(
     gatewayChargeId: string
+  ): Promise<PaymentAttemptRecord | null>;
+  findPendingAttemptBySubscription(
+    subscriptionId: string
   ): Promise<PaymentAttemptRecord | null>;
   appendAudit(event: AuditEventRecord): Promise<AuditEventRecord>;
 };
@@ -85,6 +89,10 @@ export function createMemoryStore(): MembershipStore {
       return payments.get(id) ?? null;
     },
 
+    async getPaymentAttempt(id) {
+      return payments.get(id) ?? null;
+    },
+
     async updatePaymentAttempt(attempt) {
       payments.set(attempt.id, attempt);
       if (attempt.gatewayEventId) {
@@ -98,6 +106,16 @@ export function createMemoryStore(): MembershipStore {
         Array.from(payments.values()).find(
           (p) =>
             p.gatewayChargeId === gatewayChargeId &&
+            (p.status === "created" || p.status === "pending")
+        ) ?? null
+      );
+    },
+
+    async findPendingAttemptBySubscription(subscriptionId) {
+      return (
+        Array.from(payments.values()).find(
+          (p) =>
+            p.subscriptionId === subscriptionId &&
             (p.status === "created" || p.status === "pending")
         ) ?? null
       );

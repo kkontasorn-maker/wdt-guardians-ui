@@ -7,15 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  AS_OF,
-  FAILED_PAYMENTS,
-  FOUNDING_MEMBERS,
-  MEMBERS,
-  PAYMENTS,
-  displayAmount,
-  inDateRange,
-} from "@/lib/mockData";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
+import { AS_OF, displayAmount, inDateRange } from "@/lib/mockData";
 
 type ReportKey = "membership" | "payments" | "failed" | "founding";
 
@@ -29,24 +22,29 @@ function toCsv(headers: string[], rows: string[][]) {
 }
 
 export default function AdminReportsPage() {
+  const { book } = useAdminBook();
+  const MEMBERS = useMemo(() => book?.members ?? [], [book]);
+  const PAYMENTS = useMemo(() => book?.payments ?? [], [book]);
+  const FAILED_PAYMENTS = useMemo(() => book?.failedPayments ?? [], [book]);
+  const FOUNDING_MEMBERS = useMemo(() => book?.foundingMembers ?? [], [book]);
   const [from, setFrom] = useState("2026-08-01");
   const [to, setTo] = useState(AS_OF);
 
   const membershipRows = useMemo(
     () => MEMBERS.filter((row) => inDateRange(row.joinedAt, from, to)),
-    [from, to]
+    [MEMBERS, from, to]
   );
   const paymentRows = useMemo(
     () => PAYMENTS.filter((row) => inDateRange(row.date, from, to)),
-    [from, to]
+    [PAYMENTS, from, to]
   );
   const failedRows = useMemo(
     () => FAILED_PAYMENTS.filter((row) => inDateRange(row.failedOn, from, to)),
-    [from, to]
+    [FAILED_PAYMENTS, from, to]
   );
   const foundingRows = useMemo(
     () => FOUNDING_MEMBERS.filter((row) => inDateRange(row.joinedAt, from, to)),
-    [from, to]
+    [FOUNDING_MEMBERS, from, to]
   );
 
   const reports: {

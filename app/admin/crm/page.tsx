@@ -1,23 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminTable } from "@/components/admin/admin-table";
 import { TablePagination } from "@/components/admin/table-pagination";
 import { Textarea } from "@/components/ui/textarea";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CRM_CONTACTS, displayDate, PAGE_SIZE } from "@/lib/mockData";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
+import { displayDate, PAGE_SIZE } from "@/lib/mockData";
 
 export default function AdminCrmPage() {
+  const { book } = useAdminBook();
+  const CRM_CONTACTS = useMemo(() => book?.crmContacts ?? [], [book]);
   const [page, setPage] = useState(1);
-  const [notes, setNotes] = useState(() =>
-    Object.fromEntries(CRM_CONTACTS.map((row) => [row.id, row.notes]))
-  );
+  const [notes, setNotes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setNotes(Object.fromEntries(CRM_CONTACTS.map((row) => [row.id, row.notes])));
+  }, [CRM_CONTACTS]);
 
   const pageCount = Math.max(1, Math.ceil(CRM_CONTACTS.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
   const rows = useMemo(
     () => CRM_CONTACTS.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-    [safePage]
+    [CRM_CONTACTS, safePage]
   );
 
   return (

@@ -49,13 +49,28 @@ curl -s -X POST http://localhost:43127/api/webhooks/omise \
 curl -s http://localhost:43127/api/membership/WDTG-xxxxxx
 ```
 
+## Admin Soft Launch
+
+1. Set `ADMIN_PASSWORD`, `ADMIN_ALLOWLIST`, `ADMIN_SESSION_SECRET` in `.env.local`
+2. Open http://localhost:43127/admin/login
+3. Sign in with an allowlisted email + shared password
+4. Console reads the shared admin book (`GET /api/admin/book`, seeded + persisted under `data/`)
+
+## Member portal sign-in
+
+Guardians (not staff) sign in at `/manage/login` with **Guardian ID + join email**.
+Session cookie is separate from admin. `/manage` loads the membership from the spine/admin book when signed in; localStorage remains a fallback.
+
+## Card join (Omise.js)
+
+With `NEXT_PUBLIC_OMISE_PUBLIC_KEY` + secret key set, `/join` (card) opens Omise’s form, sends **token only** to `POST /api/membership/charge`, activates when paid / webhook confirms.
+
 ## What still needs humans
 
-- Omise merchant KYC + real test/live keys (`OMISE_*`)
-- Real webhook HMAC verification (placeholder accepts non-empty signature when secret is set)
+- WDT official Omise merchant (swap keys when ready)
 - Thai copy review for join / receipts
-- Account migration off browser `localStorage` → these APIs (wire data source only; keep JSX)
-- Postgres production `DATABASE_URL` + migrations (schema shapes ready; adapter stubbed)
-- Staff auth on `/admin` before Soft Launch traffic
+- Postgres production `DATABASE_URL` + migrations
+- Public webhook URL (Vercel / tunnel) for Omise events
+- Soft Launch audience + booth venue confirmation
 
-No Omise KYC, Thai review, or account migration is required to develop or build this spine.
+Personal Omise **test** keys are enough to develop Soft Launch.

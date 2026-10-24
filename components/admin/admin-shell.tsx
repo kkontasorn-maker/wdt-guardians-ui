@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import { AdminSidebarNav, AdminWordmark } from "@/components/admin/sidebar-nav";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,18 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/s
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
+
+  async function logout() {
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.replace("/admin/login");
+    router.refresh();
+  }
 
   return (
     <div className="min-h-screen bg-brand-paper">
@@ -50,12 +63,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <span className="hidden sm:inline">Backoffice Console</span>
             </p>
           </div>
-          <Badge
-            variant="outline"
-            className="shrink-0 border-brand-orange/40 bg-accent px-2.5 py-1 text-[11px] font-semibold tracking-wide text-brand-deep"
-          >
-            DEMO DATA · Admin
-          </Badge>
+          <div className="flex shrink-0 items-center gap-2">
+            <Badge
+              variant="outline"
+              className="border-brand-orange/40 bg-accent px-2.5 py-1 text-[11px] font-semibold tracking-wide text-brand-deep"
+            >
+              SOFT LAUNCH · Admin
+            </Badge>
+            <Button type="button" variant="outline" size="sm" onClick={logout}>
+              Sign out
+            </Button>
+          </div>
         </header>
         <main className="px-4 py-5 sm:px-6 sm:py-6">{children}</main>
       </div>

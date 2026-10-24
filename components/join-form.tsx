@@ -147,40 +147,136 @@ export function JoinForm() {
   async function confirmMembership() {
     if (!planId || !paymentMethod) return;
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1500));
 
     const now = new Date().toISOString();
     const plan = planById(planId);
-    save({
-      memberId: generateMemberId(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      email: email.trim().toLowerCase(),
-      phone: phone.replace(/\s/g, ""),
-      zip: "",
-      planId,
-      amount: plan.monthly,
-      interval,
-      status: "active",
-      joinedAt: now,
-      nextBillingAt: addInterval(now, interval),
-      pausedAt: null,
-      canceledAt: null,
-      lastFour: paymentMethod === "card" ? "4242" : "",
-      cardBrand: paymentBrand(paymentMethod),
-      paymentMethod,
-      dedication: "",
-      receipts: [
-        {
-          id: generateReceiptId(),
-          date: now,
-          amount: charge,
+    const publicKey = process.env.NEXT_PUBLIC_OMISE_PUBLIC_KEY?.trim();
+
+    try {
+      // Soft Launch: card + Omise public key → pending API + Omise.js token + charge.
+      if (paymentMethod === "card" && publicKey) {
+        const joinRes = await fetch("/api/membership/join", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            phone: phone.replace(/\s/g, ""),
+            planId,
+            interval,
+            locale,
+            founding: true,
+          }),
+        });
+        const joinJson = (await joinRes.json()) as {
+          error?: string;
+          guardianId?: string;
+          subscriptionId?: string;
+          paymentAttemptId?: string;
+        };
+        if (!joinRes.ok || !joinJson.subscriptionId || !joinJson.guardianId) {
+          throw new Error(joinJson.error ?? "Could not create pending membership");
+        }
+
+        const { openOmiseCardToken } = await import("@/lib/omise-browser");
+        const token = await openOmiseCardToken({
+          publicKey,
+          amountSatang: Math.round(charge * 100),
+          description: `${plan.name} · ${interval}`,
+        });
+
+        const chargeRes = await fetch("/api/membership/charge", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            omiseToken: token.id,
+            subscriptionId: joinJson.subscriptionId,
+            paymentAttemptId: joinJson.paymentAttemptId,
+          }),
+        });
+        const chargeJson = (await chargeRes.json()) as {
+          error?: string;
+          paid?: boolean;
+          guardianId?: string;
+        };
+        if (!chargeRes.ok) {
+          throw new Error(chargeJson.error ?? "Charge failed");
+        }
+
+        save({
+          memberId: joinJson.guardianId,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.replace(/\s/g, ""),
+          zip: "",
+          planId,
+          amount: plan.monthly,
           interval,
-          status: "paid",
-        },
-      ],
-    });
-    router.push("/join/success");
+          status: chargeJson.paid ? "active" : "active",
+          joinedAt: now,
+          nextBillingAt: addInterval(now, interval),
+          pausedAt: null,
+          canceledAt: null,
+          lastFour: token.card?.last_digits ?? "****",
+          cardBrand: token.card?.brand ?? paymentBrand(paymentMethod),
+          paymentMethod,
+          dedication: "",
+          receipts: chargeJson.paid
+            ? [
+                {
+                  id: generateReceiptId(),
+                  date: now,
+                  amount: charge,
+                  interval,
+                  status: "paid",
+                },
+              ]
+            : [],
+        });
+        router.push("/join/success");
+        return;
+      }
+
+      // Fallback: local mock (PromptPay/bank, or Omise key missing)
+      await new Promise((r) => setTimeout(r, 800));
+      save({
+        memberId: generateMemberId(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.replace(/\s/g, ""),
+        zip: "",
+        planId,
+        amount: plan.monthly,
+        interval,
+        status: "active",
+        joinedAt: now,
+        nextBillingAt: addInterval(now, interval),
+        pausedAt: null,
+        canceledAt: null,
+        lastFour: paymentMethod === "card" ? "4242" : "",
+        cardBrand: paymentBrand(paymentMethod),
+        paymentMethod,
+        dedication: "",
+        receipts: [
+          {
+            id: generateReceiptId(),
+            date: now,
+            amount: charge,
+            interval,
+            status: "paid",
+          },
+        ],
+      });
+      router.push("/join/success");
+    } catch (err) {
+      console.error(err);
+      window.alert(err instanceof Error ? err.message : "Join failed");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (

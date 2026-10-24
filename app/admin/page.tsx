@@ -5,22 +5,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LAUNCH_OPS, SYSTEM_OF_TRUTH } from "@/lib/admin";
-import {
-  DASHBOARD_STATS,
-  displayDate,
-  failedPaymentCount,
-  pendingPaymentCount,
-  recentMembers,
-} from "@/lib/mockData";
+import { getAdminBook } from "@/lib/admin-book";
+import { displayDate } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
+  const book = getAdminBook();
+  const {
+    dashboardStats: DASHBOARD_STATS,
+    failedPaymentCount,
+    pendingPaymentCount,
+    recentMembers,
+  } = book;
+
   return (
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-extrabold">Dashboard</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Chiang Mai desk snapshot — demo figures, not live charges.
+          Chiang Mai desk snapshot — Soft Launch shared book ({book.source}).
         </p>
       </div>
 
