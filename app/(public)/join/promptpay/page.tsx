@@ -84,6 +84,7 @@ function PromptPayWaitInner() {
             instagram: "",
             lineId: "",
             whatsapp: "",
+            photoDataUrl: "",
             receipts: [
               {
                 id: generateReceiptId(),

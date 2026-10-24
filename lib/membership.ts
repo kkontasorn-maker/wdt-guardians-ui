@@ -47,6 +47,8 @@ export type Membership = {
   instagram: string;
   lineId: string;
   whatsapp: string;
+  /** Soft Launch profile photo as a compressed data URL (or empty). */
+  photoDataUrl: string;
   receipts: Receipt[];
 };
 
@@ -214,6 +216,7 @@ export function readMembership(): Membership | null {
       instagram: parsed.instagram ?? "",
       lineId: parsed.lineId ?? "",
       whatsapp: parsed.whatsapp ?? "",
+      photoDataUrl: parsed.photoDataUrl ?? "",
     };
   } catch {
     throw new Error("corrupt");
@@ -268,6 +271,7 @@ export function sampleMembership(): Membership {
     instagram: "",
     lineId: "",
     whatsapp: "",
+    photoDataUrl: "",
     receipts,
   };
 }

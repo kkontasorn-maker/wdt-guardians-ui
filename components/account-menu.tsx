@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { LogOut, Settings2, UserRound } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useMembership } from "@/lib/hooks";
 import { useLocale } from "@/lib/localeContext";
@@ -64,6 +64,9 @@ export function AccountMenu({ className }: { className?: string }) {
         onClick={() => setOpen((v) => !v)}
       >
         <Avatar className="h-9 w-9">
+          {membership.photoDataUrl ? (
+            <AvatarImage src={membership.photoDataUrl} alt="" />
+          ) : null}
           <AvatarFallback className="bg-brand-orange font-heading text-xs font-extrabold text-white">
             {initials(membership.firstName, membership.lastName)}
           </AvatarFallback>

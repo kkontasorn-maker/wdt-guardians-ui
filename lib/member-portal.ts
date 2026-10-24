@@ -14,6 +14,7 @@ function applyProfile(membership: Membership): Membership {
       instagram: membership.instagram ?? "",
       lineId: membership.lineId ?? "",
       whatsapp: membership.whatsapp ?? "",
+      photoDataUrl: membership.photoDataUrl ?? "",
     };
   }
   return {
@@ -26,6 +27,7 @@ function applyProfile(membership: Membership): Membership {
     instagram: profile.instagram ?? membership.instagram ?? "",
     lineId: profile.lineId ?? membership.lineId ?? "",
     whatsapp: profile.whatsapp ?? membership.whatsapp ?? "",
+    photoDataUrl: profile.photoDataUrl ?? membership.photoDataUrl ?? "",
   };
 }
 
@@ -97,6 +99,7 @@ export async function findGuardianForLogin(
       instagram: "",
       lineId: "",
       whatsapp: "",
+      photoDataUrl: "",
       receipts:
         sub?.status === "active"
           ? [
@@ -158,6 +161,7 @@ export async function findGuardianForLogin(
     instagram: "",
     lineId: "",
     whatsapp: "",
+    photoDataUrl: "",
     receipts: [],
   };
 

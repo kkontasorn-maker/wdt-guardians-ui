@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, CreditCard, Pause, Play, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { GuardianBadge } from "@/components/guardian-badge";
 import { MemberProfileForms } from "@/components/member-profile-forms";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -45,17 +45,24 @@ function manageTabFromSearch(tab: string | null): "impact" | "billing" | "settin
 }
 
 function statusBadge(status: Membership["status"], t: (key: string) => string) {
-  if (status === "active") return <Badge className="bg-brand-orange hover:bg-brand-deep">{t("status.active")}</Badge>;
-  if (status === "paused")
+  if (status === "active") {
     return (
-      <Badge variant="outline" className="border-brand-slate text-brand-slate">
-        {t("status.paused")}
-      </Badge>
+      <span className="inline-flex h-12 min-w-[8.5rem] items-center justify-center rounded-xl bg-emerald-600 px-6 text-sm font-extrabold uppercase tracking-[0.12em] text-white shadow-sm">
+        {t("status.active")}
+      </span>
     );
+  }
+  if (status === "paused") {
+    return (
+      <span className="inline-flex h-12 min-w-[8.5rem] items-center justify-center rounded-xl border-2 border-brand-slate bg-white px-6 text-sm font-extrabold uppercase tracking-[0.12em] text-brand-slate">
+        {t("status.paused")}
+      </span>
+    );
+  }
   return (
-    <Badge variant="outline" className="text-destructive">
+    <span className="inline-flex h-12 min-w-[8.5rem] items-center justify-center rounded-xl border-2 border-destructive/40 bg-white px-6 text-sm font-extrabold uppercase tracking-[0.12em] text-destructive">
       {t("status.canceled")}
-    </Badge>
+    </span>
   );
 }
 
@@ -250,19 +257,6 @@ export default function ManagePage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {statusBadge(membership.status, t)}
-          {(fromSession || membership.memberId) && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={async () => {
-                await clear();
-                toast.message(t("manage.signOut"));
-              }}
-            >
-              {t("manage.signOut")}
-            </Button>
-          )}
         </div>
       </div>
 
@@ -424,6 +418,14 @@ export default function ManagePage() {
           </Card>
         </TabsContent>
         <TabsContent value="settings" className="mt-4 space-y-4">
+          <div>
+            <h2 className="font-heading text-xl font-extrabold">{t("manage.badgeTitle")}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{t("manage.badgeBody")}</p>
+            <div className="mt-4">
+              <GuardianBadge membership={current} />
+            </div>
+          </div>
+
           <MemberProfileForms
             membership={current}
             fromSession={fromSession}
