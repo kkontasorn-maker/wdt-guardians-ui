@@ -165,6 +165,13 @@ export const messages: Record<Locale, Dict> = {
       continue: "Continue",
       confirming: "Confirming…",
       confirm: "Confirm membership",
+      promptpayHeadline: "Scan to pay with PromptPay",
+      promptpayBody: "Open your bank app and scan this QR for {amount}. Stay on this page until payment confirms.",
+      promptpayWaiting: "Waiting for PromptPay confirmation",
+      promptpayHint:
+        "You can leave after paying — activation also arrives via Omise webhook. Keep your email handy for /manage/login.",
+      promptpayMissing: "Missing PromptPay session. Start again from Join.",
+      promptpayPollError: "Could not check payment status. Retry in a moment.",
     },
     success: {
       loadErrorHeadline: "We could not load your confirmation",
@@ -419,6 +426,13 @@ export const messages: Record<Locale, Dict> = {
       continue: "ต่อไป",
       confirming: "กำลังยืนยัน…",
       confirm: "ยืนยันสมาชิกภาพ",
+      promptpayHeadline: "สแกนจ่ายด้วยพร้อมเพย์",
+      promptpayBody: "เปิดแอปธนาคารแล้วสแกน QR นี้เป็นจำนวน {amount} อยู่หน้านี้จนกว่าจะยืนยันการชำระ",
+      promptpayWaiting: "รอการยืนยันจากพร้อมเพย์",
+      promptpayHint:
+        "จ่ายแล้วออกจากหน้านี้ได้ — ระบบจะเปิดสมาชิกเมื่อ Omise ยืนยัน เก็บอีเมลไว้เข้า /manage/login",
+      promptpayMissing: "ไม่พบเซสชันพร้อมเพย์ กรุณาสมัครใหม่จากหน้า Join",
+      promptpayPollError: "ตรวจสถานะการชำระไม่ได้ ลองใหม่ในอีกสักครู่",
     },
     success: {
       loadErrorHeadline: "โหลดหน้ายืนยันไม่ได้",
