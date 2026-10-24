@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   const verified = verifyOmiseWebhookSignature({
     rawBody,
     signatureHeader: signature,
+    webhookSecretHeader: request.headers.get("x-webhook-secret"),
   });
   if (!verified.ok) {
     return NextResponse.json(

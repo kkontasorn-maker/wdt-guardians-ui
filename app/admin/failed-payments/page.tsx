@@ -2,9 +2,11 @@ import { AdminTable } from "@/components/admin/admin-table";
 import { RetryStageTracker } from "@/components/admin/retry-stage-tracker";
 import { Badge } from "@/components/ui/badge";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayAmount, FAILED_PAYMENTS } from "@/lib/mockData";
+import { getAdminBook } from "@/lib/admin-book";
+import { displayAmount } from "@/lib/mockData";
 
 export default function AdminFailedPaymentsPage() {
+  const { failedPayments: FAILED_PAYMENTS } = getAdminBook();
   const rows = [...FAILED_PAYMENTS].sort((a, b) => b.failedOn.localeCompare(a.failedOn));
 
   return (

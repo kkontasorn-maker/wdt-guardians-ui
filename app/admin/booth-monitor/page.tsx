@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AdminTable } from "@/components/admin/admin-table";
 import { Badge } from "@/components/ui/badge";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { BOOTH_QUEUE, displayTime, type BoothDevice } from "@/lib/mockData";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
+import { displayTime, type BoothDevice } from "@/lib/mockData";
 
 type FeedRow = {
   id: string;
@@ -20,21 +21,29 @@ const MAX_ROWS = 18;
 const TICK_MS = 3500;
 
 export default function AdminBoothMonitorPage() {
+  const { book } = useAdminBook();
+  const BOOTH_QUEUE = useMemo(() => book?.boothQueue ?? [], [book]);
   const seq = useRef(INITIAL_COUNT);
-  const [rows, setRows] = useState<FeedRow[]>(() => {
-    const start = Date.now();
-    return BOOTH_QUEUE.slice(0, INITIAL_COUNT)
-      .map((item, i) => ({
-        id: `booth-${i + 1}`,
-        guardianId: item.guardianId,
-        plan: item.plan,
-        device: item.device,
-        at: new Date(start - (INITIAL_COUNT - i) * 18_000).toISOString(),
-      }))
-      .reverse();
-  });
+  const [rows, setRows] = useState<FeedRow[]>([]);
 
   useEffect(() => {
+    if (!BOOTH_QUEUE.length) return;
+    const start = Date.now();
+    setRows(
+      BOOTH_QUEUE.slice(0, INITIAL_COUNT)
+        .map((item, i) => ({
+          id: `booth-${i + 1}`,
+          guardianId: item.guardianId,
+          plan: item.plan,
+          device: item.device,
+          at: new Date(start - (INITIAL_COUNT - i) * 18_000).toISOString(),
+        }))
+        .reverse()
+    );
+  }, [BOOTH_QUEUE]);
+
+  useEffect(() => {
+    if (!BOOTH_QUEUE.length) return;
     const timer = window.setInterval(() => {
       setRows((current) => {
         const next = BOOTH_QUEUE[seq.current % BOOTH_QUEUE.length];
@@ -51,7 +60,7 @@ export default function AdminBoothMonitorPage() {
       });
     }, TICK_MS);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [BOOTH_QUEUE]);
 
   return (
     <div>

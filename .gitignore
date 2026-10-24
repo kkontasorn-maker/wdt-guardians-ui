@@ -32,8 +32,9 @@ yarn-error.log*
 .env
 .env*.local
 
-# local sqlite
-/data/
+# local sqlite / admin book
+/data/*
+!/data/.gitkeep
 *.sqlite
 *.db
 

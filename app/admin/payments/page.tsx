@@ -7,9 +7,12 @@ import { TablePagination } from "@/components/admin/table-pagination";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { displayAmount, displayDate, PAGE_SIZE, PAYMENTS } from "@/lib/mockData";
+import { useAdminBook } from "@/lib/hooks/use-admin-book";
+import { displayAmount, displayDate, PAGE_SIZE } from "@/lib/mockData";
 
 export default function AdminPaymentsPage() {
+  const { book } = useAdminBook();
+  const PAYMENTS = useMemo(() => book?.payments ?? [], [book]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
@@ -20,7 +23,7 @@ export default function AdminPaymentsPage() {
       if (to && row.date > to) return false;
       return true;
     }).sort((a, b) => b.date.localeCompare(a.date));
-  }, [from, to]);
+  }, [PAYMENTS, from, to]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount);
@@ -30,7 +33,7 @@ export default function AdminPaymentsPage() {
     <div>
       <h1 className="text-2xl font-extrabold">Payments</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Gateway events for the same Guardian IDs as Members — demo charges only.
+        Gateway events for the same Guardian IDs as Members — Soft Launch book.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 sm:max-w-md">

@@ -232,6 +232,15 @@ export function createSqliteStore(databaseUrl: string): MembershipStore {
       return row ? rowToPayment(row) : null;
     },
 
+    async getPaymentAttempt(id) {
+      const row = db
+        .select()
+        .from(schema.paymentAttempts)
+        .where(eq(schema.paymentAttempts.id, id))
+        .get();
+      return row ? rowToPayment(row) : null;
+    },
+
     async updatePaymentAttempt(attempt) {
       db.update(schema.paymentAttempts)
         .set({
@@ -251,6 +260,16 @@ export function createSqliteStore(databaseUrl: string): MembershipStore {
       const match = rows.find(
         (p) =>
           p.gatewayChargeId === gatewayChargeId &&
+          (p.status === "created" || p.status === "pending")
+      );
+      return match ? rowToPayment(match) : null;
+    },
+
+    async findPendingAttemptBySubscription(subscriptionId) {
+      const rows = db.select().from(schema.paymentAttempts).all();
+      const match = rows.find(
+        (p) =>
+          p.subscriptionId === subscriptionId &&
           (p.status === "created" || p.status === "pending")
       );
       return match ? rowToPayment(match) : null;

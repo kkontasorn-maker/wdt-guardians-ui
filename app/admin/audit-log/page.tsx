@@ -1,15 +1,17 @@
 import { AdminTable } from "@/components/admin/admin-table";
 import { Badge } from "@/components/ui/badge";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AUDIT_EVENTS, displayDateTime } from "@/lib/mockData";
+import { getAdminBook } from "@/lib/admin-book";
+import { displayDateTime } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
 
 export default function AdminAuditLogPage() {
+  const { auditEvents: AUDIT_EVENTS } = getAdminBook();
   return (
     <div>
       <h1 className="text-2xl font-extrabold">Audit Log</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        {AUDIT_EVENTS.length} mock system events for this book — newest first. Demo only.
+        {AUDIT_EVENTS.length} system events for this book — newest first.
       </p>
 
       <div className="mt-4">
