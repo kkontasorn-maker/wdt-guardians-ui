@@ -80,6 +80,10 @@ function PromptPayWaitInner() {
             cardBrand: "PromptPay",
             paymentMethod: "promptpay",
             dedication: "",
+            facebook: "",
+            instagram: "",
+            lineId: "",
+            whatsapp: "",
             receipts: [
               {
                 id: generateReceiptId(),

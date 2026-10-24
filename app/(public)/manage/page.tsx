@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AlertCircle, CreditCard, Pause, Play, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { MemberProfileForms } from "@/components/member-profile-forms";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,11 @@ import {
   type PlanId,
 } from "@/lib/membership";
 
+function manageTabFromSearch(tab: string | null): "impact" | "billing" | "settings" {
+  if (tab === "billing" || tab === "settings") return tab;
+  return "impact";
+}
+
 function statusBadge(status: Membership["status"], t: (key: string) => string) {
   if (status === "active") return <Badge className="bg-brand-orange hover:bg-brand-deep">{t("status.active")}</Badge>;
   if (status === "paused")
@@ -55,11 +62,17 @@ function statusBadge(status: Membership["status"], t: (key: string) => string) {
 export default function ManagePage() {
   const { membership, state, save, clear, fromSession } = useMembership();
   const { locale, t } = useLocale();
+  const searchParams = useSearchParams();
+  const [tab, setTab] = useState(() => manageTabFromSearch(searchParams.get("tab")));
   const [planDraft, setPlanDraft] = useState<PlanId>("wdt399");
   const [cardDraft, setCardDraft] = useState("");
   const [cardOpen, setCardOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+
+  useEffect(() => {
+    setTab(manageTabFromSearch(searchParams.get("tab")));
+  }, [searchParams]);
 
   if (state === "loading") {
     return (
@@ -319,7 +332,7 @@ export default function ManagePage() {
         </Card>
       </div>
 
-      <Tabs defaultValue="impact" className="mt-8">
+      <Tabs value={tab} onValueChange={(v) => setTab(manageTabFromSearch(v))} className="mt-8">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="impact">{t("manage.tabImpact")}</TabsTrigger>
           <TabsTrigger value="billing">{t("manage.tabBilling")}</TabsTrigger>
@@ -411,6 +424,12 @@ export default function ManagePage() {
           </Card>
         </TabsContent>
         <TabsContent value="settings" className="mt-4 space-y-4">
+          <MemberProfileForms
+            membership={current}
+            fromSession={fromSession}
+            onSaved={save}
+          />
+
           <Card className="bg-white">
             <CardHeader>
               <CardTitle className="font-heading text-xl">{t("manage.planAndPayment")}</CardTitle>

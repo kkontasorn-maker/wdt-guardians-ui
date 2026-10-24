@@ -223,6 +223,10 @@ export function JoinForm() {
           cardBrand: token.card?.brand ?? paymentBrand(paymentMethod),
           paymentMethod,
           dedication: "",
+          facebook: "",
+          instagram: "",
+          lineId: "",
+          whatsapp: "",
           receipts: chargeJson.paid
             ? [
                 {
@@ -322,6 +326,10 @@ export function JoinForm() {
         cardBrand: paymentBrand(paymentMethod),
         paymentMethod,
         dedication: "",
+        facebook: "",
+        instagram: "",
+        lineId: "",
+        whatsapp: "",
         receipts: [
           {
             id: generateReceiptId(),

@@ -152,6 +152,41 @@ export function resetAdminBookFromSeed(): AdminBook {
   return cached;
 }
 
+/** Soft Launch: update name/email on an existing admin-book member (by id). */
+export function updateAdminMemberContact(input: {
+  id: string;
+  name: string;
+  email: string;
+}): AdminBook {
+  const book = getAdminBook();
+  const idx = book.members.findIndex(
+    (m) => m.id.toUpperCase() === input.id.trim().toUpperCase()
+  );
+  if (idx < 0) return book;
+
+  const prev = book.members[idx];
+  book.members[idx] = {
+    ...prev,
+    name: input.name.trim() || prev.name,
+    email: input.email.trim().toLowerCase() || prev.email,
+    lastContact: new Date().toISOString().slice(0, 10),
+    notes: prev.notes?.includes("Profile updated")
+      ? prev.notes
+      : [prev.notes, "Profile updated"].filter(Boolean).join(" · "),
+  };
+
+  book.auditEvents.unshift({
+    id: `aud-profile-${Date.now()}`,
+    at: new Date().toISOString(),
+    actor: "System",
+    action: `Profile contact updated: ${input.id}`,
+  });
+
+  cached = recompute(book);
+  persist(cached);
+  return cached;
+}
+
 /** Append a live Guardian after join/activation (idempotent by id). */
 export function upsertLiveMember(input: {
   id: string;

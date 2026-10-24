@@ -140,6 +140,22 @@ export function createSqliteStore(databaseUrl: string): MembershipStore {
       return member;
     },
 
+    async updateMember(member) {
+      db.update(schema.members)
+        .set({
+          email: member.email,
+          firstName: member.firstName,
+          lastName: member.lastName,
+          phone: member.phone,
+          locale: member.locale,
+          founding: member.founding,
+          updatedAt: member.updatedAt,
+        })
+        .where(eq(schema.members.id, member.id))
+        .run();
+      return member;
+    },
+
     async getMemberById(id) {
       const row = db.select().from(schema.members).where(eq(schema.members.id, id)).get();
       return row ? rowToMember(row) : null;

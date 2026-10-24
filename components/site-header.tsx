@@ -2,14 +2,17 @@
 
 import Link from "next/link";
 import { Menu } from "lucide-react";
+import { AccountMenu } from "@/components/account-menu";
 import { LanguageToggle } from "@/components/language-toggle";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useMembership } from "@/lib/hooks";
 import { useLocale } from "@/lib/localeContext";
 
 export function SiteHeader() {
   const { t } = useLocale();
+  const { membership, clear } = useMembership();
   const links = [
     { href: "/#program", label: t("header.program") },
     { href: "/#impact", label: t("header.impact") },
@@ -35,12 +38,11 @@ export function SiteHeader() {
         </nav>
         <div className="hidden items-center gap-3 md:flex">
           <LanguageToggle />
-          <Button asChild>
-            <Link href="/join">{t("header.join")}</Link>
-          </Button>
+          <AccountMenu />
         </div>
         <div className="flex shrink-0 items-center gap-2 md:hidden">
           <LanguageToggle />
+          {membership ? <AccountMenu /> : null}
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" aria-label={t("header.openMenu")}>
@@ -63,9 +65,35 @@ export function SiteHeader() {
                     {link.label}
                   </Link>
                 ))}
-                <Button asChild className="mt-4 w-full">
-                  <Link href="/join">{t("header.join")}</Link>
-                </Button>
+                {membership ? (
+                  <>
+                    <Link
+                      href="/manage"
+                      className="inline-flex min-h-12 items-center rounded-md px-3 text-base font-medium text-brand-ink"
+                    >
+                      {t("header.memberPortal")}
+                    </Link>
+                    <Link
+                      href="/manage?tab=settings"
+                      className="inline-flex min-h-12 items-center rounded-md px-3 text-base font-medium text-brand-ink"
+                    >
+                      {t("header.editProfile")}
+                    </Link>
+                    <Button
+                      variant="outline"
+                      className="mt-4 w-full"
+                      onClick={() => {
+                        void clear();
+                      }}
+                    >
+                      {t("header.signOut")}
+                    </Button>
+                  </>
+                ) : (
+                  <Button asChild className="mt-4 w-full">
+                    <Link href="/join">{t("header.join")}</Link>
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>

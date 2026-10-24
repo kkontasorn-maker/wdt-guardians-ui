@@ -9,6 +9,7 @@ import type {
 export type MembershipStore = {
   mode: "memory" | "sqlite" | "postgres";
   createMember(member: MemberRecord): Promise<MemberRecord>;
+  updateMember(member: MemberRecord): Promise<MemberRecord>;
   getMemberByGuardianId(guardianId: string): Promise<MemberWithSubscription | null>;
   getMemberById(id: string): Promise<MemberRecord | null>;
   createSubscription(sub: SubscriptionRecord): Promise<SubscriptionRecord>;
@@ -41,6 +42,12 @@ export function createMemoryStore(): MembershipStore {
     mode: "memory",
 
     async createMember(member) {
+      members.set(member.id, member);
+      membersByGuardian.set(member.guardianId, member.id);
+      return member;
+    },
+
+    async updateMember(member) {
       members.set(member.id, member);
       membersByGuardian.set(member.guardianId, member.id);
       return member;
