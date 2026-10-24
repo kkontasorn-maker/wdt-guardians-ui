@@ -90,9 +90,14 @@ export function SiteHeader() {
                     </Button>
                   </>
                 ) : (
-                  <Button asChild className="mt-4 w-full">
-                    <Link href="/join">{t("header.join")}</Link>
-                  </Button>
+                  <div className="mt-4 flex flex-col gap-2">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href="/manage/login">{t("header.signIn")}</Link>
+                    </Button>
+                    <Button asChild className="w-full">
+                      <Link href="/join">{t("header.join")}</Link>
+                    </Button>
+                  </div>
                 )}
               </div>
             </SheetContent>

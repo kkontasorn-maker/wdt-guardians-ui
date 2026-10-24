@@ -48,9 +48,14 @@ export function AccountMenu({ className }: { className?: string }) {
 
   if (!membership) {
     return (
-      <Button asChild className={className}>
-        <Link href="/join">{t("header.join")}</Link>
-      </Button>
+      <div className={cn("flex items-center gap-2", className)}>
+        <Button asChild variant="outline">
+          <Link href="/manage/login">{t("header.signIn")}</Link>
+        </Button>
+        <Button asChild>
+          <Link href="/join">{t("header.join")}</Link>
+        </Button>
+      </div>
     );
   }
 
