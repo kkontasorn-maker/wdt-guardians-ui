@@ -1,26 +1,36 @@
 import type { Metadata } from "next";
-import { Archivo, Inter, Noto_Sans_Thai } from "next/font/google";
+import localFont from "next/font/local";
 import { ContentProvider } from "@/lib/contentContext";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["700", "800"],
+const archivo = localFont({
+  src: [
+    { path: "./fonts/archivo-latin-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/archivo-latin-800-normal.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-heading",
   display: "swap",
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const inter = localFont({
+  src: [
+    { path: "./fonts/inter-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/inter-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/inter-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
   variable: "--font-sans",
   display: "swap",
 });
 
-const notoSansThai = Noto_Sans_Thai({
-  subsets: ["thai", "latin"],
-  weight: ["400", "500", "600", "700", "800"],
+const notoSansThai = localFont({
+  src: [
+    { path: "./fonts/noto-sans-thai-thai-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/noto-sans-thai-thai-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/noto-sans-thai-thai-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/noto-sans-thai-thai-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/noto-sans-thai-thai-800-normal.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-thai",
   display: "swap",
 });
