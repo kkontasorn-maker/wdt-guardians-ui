@@ -239,7 +239,69 @@ export function JoinForm() {
         return;
       }
 
-      // Fallback: local mock (PromptPay/bank, or Omise key missing)
+      // Soft Launch: PromptPay + Omise secret available → pending + QR wait page.
+      if (paymentMethod === "promptpay" && publicKey) {
+        const joinRes = await fetch("/api/membership/join", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            phone: phone.replace(/\s/g, ""),
+            planId,
+            interval,
+            locale,
+            founding: true,
+          }),
+        });
+        const joinJson = (await joinRes.json()) as {
+          error?: string;
+          guardianId?: string;
+          subscriptionId?: string;
+          paymentAttemptId?: string;
+          amountThb?: number;
+        };
+        if (!joinRes.ok || !joinJson.subscriptionId || !joinJson.guardianId) {
+          throw new Error(joinJson.error ?? "Could not create pending membership");
+        }
+
+        const ppRes = await fetch("/api/membership/promptpay", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            subscriptionId: joinJson.subscriptionId,
+            paymentAttemptId: joinJson.paymentAttemptId,
+          }),
+        });
+        const ppJson = (await ppRes.json()) as {
+          error?: string;
+          chargeId?: string;
+          qrImageUrl?: string | null;
+          amountThb?: number;
+        };
+        if (!ppRes.ok || !ppJson.chargeId) {
+          throw new Error(ppJson.error ?? "Could not create PromptPay charge");
+        }
+
+        const qs = new URLSearchParams({
+          chargeId: ppJson.chargeId,
+          guardianId: joinJson.guardianId,
+          subscriptionId: joinJson.subscriptionId,
+          amountThb: String(ppJson.amountThb ?? joinJson.amountThb ?? charge),
+          planId,
+          interval,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim().toLowerCase(),
+          phone: phone.replace(/\s/g, ""),
+        });
+        if (ppJson.qrImageUrl) qs.set("qr", encodeURIComponent(ppJson.qrImageUrl));
+        router.push(`/join/promptpay?${qs.toString()}`);
+        return;
+      }
+
+      // Fallback: local mock (bank, or Omise key missing)
       await new Promise((r) => setTimeout(r, 800));
       save({
         memberId: generateMemberId(),

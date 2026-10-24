@@ -65,6 +65,14 @@ Session cookie is separate from admin. `/manage` loads the membership from the s
 
 With `NEXT_PUBLIC_OMISE_PUBLIC_KEY` + secret key set, `/join` (card) opens Omise’s form, sends **token only** to `POST /api/membership/charge`, activates when paid / webhook confirms.
 
+## PromptPay join
+
+1. `/join` → PromptPay → `POST /api/membership/join` (pending) → `POST /api/membership/promptpay` (QR charge)
+2. `/join/promptpay` shows QR and polls `GET /api/membership/charges/:id`
+3. When Omise marks the charge paid (poll or `POST /api/webhooks/omise`), subscription **pending → active**
+
+Public webhook URL (Vercel) is required for reliable PromptPay; localhost alone will not receive Omise events.
+
 ## What still needs humans
 
 - WDT official Omise merchant (swap keys when ready)

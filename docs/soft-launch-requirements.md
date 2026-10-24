@@ -21,8 +21,10 @@ Asia/Bangkok. Soft Launch **10 Dec 2026**. Scope is limited rollout, not full pl
 
 - **Omise.js** in the browser — never send raw card data to our server (Omise policy).
 - Server receives **token only** → creates charge with secret key.
+- **PromptPay:** server creates `source[type]=promptpay` charge → QR in UI → activate only when paid (poll + webhook).
 - Webhook = payment truth → state machine `payment_confirmed` with `paymentConfirmed=true`.
 - Test keys on personal Omise account until WDT merchant is approved; then swap keys only.
+- Soft Launch host may be `*.vercel.app` (custom domain optional).
 
 ## Data
 

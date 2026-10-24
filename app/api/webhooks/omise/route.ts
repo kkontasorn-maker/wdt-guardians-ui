@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
+import { upsertLiveMember } from "@/lib/admin-book";
+import { nowIso } from "@/lib/spine/ids";
+import { PLANS, type SpinePlanId } from "@/lib/spine/plans";
 import {
   getOmiseConfig,
   handleOmiseChargeComplete,
   isSuccessfulChargeEvent,
   verifyOmiseWebhookSignature,
 } from "@/lib/spine";
+import { getStore } from "@/lib/spine/store";
 
 export const runtime = "nodejs";
 
@@ -91,6 +95,27 @@ export async function POST(request: Request) {
     gatewayChargeId,
     subscriptionId,
   });
+
+  if (result.status === "activated") {
+    const store = await getStore();
+    const row = await store.getMemberByGuardianId(result.guardianId);
+    if (row?.member && row.subscription) {
+      upsertLiveMember({
+        id: row.member.guardianId,
+        name: `${row.member.firstName} ${row.member.lastName}`,
+        email: row.member.email,
+        plan: PLANS[row.subscription.planId as SpinePlanId].name as
+          | "WDT 199"
+          | "WDT 399"
+          | "WDT 999",
+        status: "Active",
+        joinedAt: nowIso(),
+        nextRenewal: null,
+        founding: row.member.founding,
+        channel: "mobile",
+      });
+    }
+  }
 
   return NextResponse.json({
     ok: true,
