@@ -25,12 +25,19 @@ export default function AdminLoginPage() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        mustChangePassword?: boolean;
+      };
       if (!res.ok) {
         setError(data.error ?? "Login failed");
         return;
       }
-      router.replace(next.startsWith("/admin") ? next : "/admin");
+      if (data.mustChangePassword) {
+        router.replace("/admin/change-password");
+      } else {
+        router.replace(next.startsWith("/admin") ? next : "/admin");
+      }
       router.refresh();
     } catch {
       setError("Network error");
@@ -53,7 +60,7 @@ export default function AdminLoginPage() {
             Admin sign in
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Shared password · allowlisted officers only.
+            Soft Launch officers — use your admin email and password.
           </p>
         </div>
         <div className="space-y-2">

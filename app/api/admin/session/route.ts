@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_COOKIE,
   isAdminConfigured,
-  readAdminSession,
+  resolveAdminSession,
 } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
@@ -13,9 +13,16 @@ export async function GET() {
     return NextResponse.json({ configured: false, email: null });
   }
   const token = cookies().get(ADMIN_COOKIE)?.value;
-  const session = readAdminSession(token);
+  const session = await resolveAdminSession(token);
+  if (!session) {
+    return NextResponse.json({ configured: true, email: null });
+  }
   return NextResponse.json({
     configured: true,
-    email: session?.email ?? null,
+    email: session.email,
+    role: session.role,
+    mustChangePassword: session.mustChangePassword,
+    name: session.name,
+    userId: session.userId,
   });
 }
