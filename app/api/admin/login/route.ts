@@ -29,12 +29,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "email and password required" }, { status: 400 });
   }
 
-  if (!verifyAdminCredentials(email, password)) {
+  const user = await verifyAdminCredentials(email, password);
+  if (!user) {
     return NextResponse.json({ error: "invalid credentials" }, { status: 401 });
   }
 
-  const token = createAdminSessionToken(email);
-  const res = NextResponse.json({ ok: true, email: email.toLowerCase() });
+  const token = createAdminSessionToken(user.email);
+  const res = NextResponse.json({
+    ok: true,
+    email: user.email,
+    role: user.role,
+    mustChangePassword: user.mustChangePassword,
+  });
   res.headers.set("Set-Cookie", adminCookieHeader(token));
   return res;
 }

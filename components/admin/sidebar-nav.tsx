@@ -12,6 +12,7 @@ import {
   MonitorSmartphone,
   RefreshCw,
   ScrollText,
+  Shield,
   TriangleAlert,
   Users,
   type LucideIcon,
@@ -29,6 +30,7 @@ const ICONS: Record<(typeof ADMIN_NAV)[number]["href"], LucideIcon> = {
   "/admin/crm": Contact,
   "/admin/booth-monitor": MonitorSmartphone,
   "/admin/content": FileText,
+  "/admin/users": Shield,
   "/admin/reports": BarChart3,
   "/admin/audit-log": ScrollText,
 };

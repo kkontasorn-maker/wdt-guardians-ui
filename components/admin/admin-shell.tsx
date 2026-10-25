@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import { AdminSidebarNav, AdminWordmark } from "@/components/admin/sidebar-nav";
@@ -13,7 +13,33 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (pathname === "/admin/login") {
+  const bare =
+    pathname === "/admin/login" || pathname === "/admin/change-password";
+
+  useEffect(() => {
+    if (bare) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/session", { credentials: "include" });
+        const data = (await res.json()) as {
+          email?: string | null;
+          mustChangePassword?: boolean;
+        };
+        if (cancelled) return;
+        if (data.email && data.mustChangePassword) {
+          router.replace("/admin/change-password");
+        }
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [bare, pathname, router]);
+
+  if (bare) {
     return <>{children}</>;
   }
 
