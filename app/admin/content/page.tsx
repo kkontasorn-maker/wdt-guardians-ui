@@ -13,24 +13,37 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   DEFAULT_SITE_CONTENT,
   useSiteContent,
   type SiteContent,
 } from "@/lib/contentContext";
+import {
+  DEFAULT_TERMS_CONTENT,
+  useTermsContent,
+  type TermsContent,
+} from "@/lib/termsContent";
 
 export default function AdminContentPage() {
   const { content, saveContent } = useSiteContent();
+  const { content: termsContent, saveContent: saveTerms } = useTermsContent();
   const [draft, setDraft] = useState<SiteContent>(content);
+  const [termsDraft, setTermsDraft] = useState<TermsContent>(termsContent);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setDraft(content);
   }, [content]);
 
+  useEffect(() => {
+    setTermsDraft(termsContent);
+  }, [termsContent]);
+
   function save() {
     saveContent(draft);
+    saveTerms(termsDraft);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 2200);
   }
@@ -45,13 +58,22 @@ export default function AdminContentPage() {
         <div>
           <h1 className="text-2xl font-extrabold">Website Content</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Edit landing-page copy. Join still uses the membership catalog IDs, not these display names.
+            Edit landing-page copy (English) and Soft Launch Terms (English + Thai). Join catalog
+            IDs stay fixed.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="outline" onClick={preview}>
             <ExternalLink />
             Preview site
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => window.open("/terms", "_blank", "noopener,noreferrer")}
+          >
+            <ExternalLink />
+            Preview terms
           </Button>
           <Button type="button" size="lg" onClick={save}>
             Save changes
@@ -64,7 +86,108 @@ export default function AdminContentPage() {
         </p>
       )}
 
-      <Accordion type="multiple" defaultValue={["hero", "trust", "pricing", "faq"]} className="mt-6">
+      <Accordion
+        type="multiple"
+        defaultValue={["terms", "hero", "trust", "pricing", "faq"]}
+        className="mt-6"
+      >
+        <AccordionItem value="terms">
+          <AccordionTrigger className="font-heading text-base font-extrabold">
+            Terms (EN + TH)
+          </AccordionTrigger>
+          <AccordionContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Public page: <code className="text-xs">/terms</code>. Join “Accept terms” links here.
+              Blank lines in the body become paragraphs. Saved in this browser (
+              <code className="text-xs">wdt-terms-content</code>) like landing content.
+            </p>
+            <Tabs defaultValue="en">
+              <TabsList>
+                <TabsTrigger value="en">English</TabsTrigger>
+                <TabsTrigger value="th">Thai</TabsTrigger>
+              </TabsList>
+              <TabsContent value="en" className="mt-4 space-y-4">
+                <Field label="Title (EN)">
+                  <Input
+                    value={termsDraft.en.title}
+                    onChange={(e) =>
+                      setTermsDraft((d) => ({
+                        ...d,
+                        en: { ...d.en, title: e.target.value },
+                      }))
+                    }
+                  />
+                </Field>
+                <Field label="Note under title (EN)">
+                  <Input
+                    value={termsDraft.en.updatedLabel}
+                    onChange={(e) =>
+                      setTermsDraft((d) => ({
+                        ...d,
+                        en: { ...d.en, updatedLabel: e.target.value },
+                      }))
+                    }
+                  />
+                </Field>
+                <Field label="Body (EN)">
+                  <Textarea
+                    value={termsDraft.en.body}
+                    onChange={(e) =>
+                      setTermsDraft((d) => ({
+                        ...d,
+                        en: { ...d.en, body: e.target.value },
+                      }))
+                    }
+                    rows={14}
+                  />
+                </Field>
+              </TabsContent>
+              <TabsContent value="th" className="mt-4 space-y-4">
+                <Field label="Title (TH)">
+                  <Input
+                    value={termsDraft.th.title}
+                    onChange={(e) =>
+                      setTermsDraft((d) => ({
+                        ...d,
+                        th: { ...d.th, title: e.target.value },
+                      }))
+                    }
+                  />
+                </Field>
+                <Field label="Note under title (TH)">
+                  <Input
+                    value={termsDraft.th.updatedLabel}
+                    onChange={(e) =>
+                      setTermsDraft((d) => ({
+                        ...d,
+                        th: { ...d.th, updatedLabel: e.target.value },
+                      }))
+                    }
+                  />
+                </Field>
+                <Field label="Body (TH)">
+                  <Textarea
+                    value={termsDraft.th.body}
+                    onChange={(e) =>
+                      setTermsDraft((d) => ({
+                        ...d,
+                        th: { ...d.th, body: e.target.value },
+                      }))
+                    }
+                    rows={14}
+                  />
+                </Field>
+              </TabsContent>
+            </Tabs>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setTermsDraft(DEFAULT_TERMS_CONTENT)}
+            >
+              Reset terms draft
+            </Button>
+          </AccordionContent>
+        </AccordionItem>
         <AccordionItem value="hero">
           <AccordionTrigger className="font-heading text-base font-extrabold">Hero</AccordionTrigger>
           <AccordionContent className="space-y-4">
@@ -337,7 +460,14 @@ export default function AdminContentPage() {
               Saved
             </p>
           )}
-          <Button type="button" variant="outline" onClick={() => setDraft(DEFAULT_SITE_CONTENT)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setDraft(DEFAULT_SITE_CONTENT);
+              setTermsDraft(DEFAULT_TERMS_CONTENT);
+            }}
+          >
             Reset draft
           </Button>
           <Button type="button" size="lg" onClick={save}>
