@@ -129,3 +129,63 @@ export function adminPasswordResetEmail(opts: {
     text: lines.join("\n"),
   };
 }
+
+/** Soft Launch welcome / Guardian ID notice (Resend or log stub). */
+export function welcomeGuardianEmail(opts: {
+  to: string;
+  firstName: string;
+  guardianId: string;
+  planLabel: string;
+  appUrl: string;
+}): SendMailInput {
+  const base = opts.appUrl.replace(/\/$/, "");
+  const lines = [
+    `Hello ${opts.firstName || "Guardian"},`,
+    "",
+    "Welcome to WDT Guardians Soft Launch.",
+    "",
+    `Guardian ID: ${opts.guardianId}`,
+    `Plan: ${opts.planLabel}`,
+    "",
+    `Member portal: ${base}/manage/login`,
+    "Sign in with your Guardian ID and the same email you used when joining (no password).",
+    "",
+    "Soft Launch charges the amount due at join. Later periods are not auto-debited yet.",
+    "",
+    "— Watchdog Thailand Foundation · WDT Guardians",
+  ];
+  return {
+    to: opts.to,
+    subject: `Your WDT Guardian ID: ${opts.guardianId}`,
+    text: lines.join("\n"),
+  };
+}
+
+/** Fire-and-forget welcome mail; never throws to callers. */
+export async function sendWelcomeGuardianEmail(opts: {
+  to: string;
+  firstName: string;
+  guardianId: string;
+  planLabel: string;
+  appUrl?: string;
+}): Promise<SendMailResult> {
+  const appUrl =
+    opts.appUrl?.trim() ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    "https://wdt-guardians-ui.vercel.app";
+  try {
+    return await sendMail(
+      welcomeGuardianEmail({
+        to: opts.to,
+        firstName: opts.firstName,
+        guardianId: opts.guardianId,
+        planLabel: opts.planLabel,
+        appUrl,
+      })
+    );
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "welcome send failed";
+    console.warn("[mail:welcome]", message);
+    return { ok: false, mode: "log", error: message };
+  }
+}
