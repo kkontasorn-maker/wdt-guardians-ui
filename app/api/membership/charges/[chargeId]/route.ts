@@ -30,14 +30,21 @@ export async function GET(
     );
   }
 
+  const noStore = {
+    "Cache-Control": "no-store, max-age=0",
+  };
+
   if (!status.paid) {
-    return NextResponse.json({
-      chargeId: status.chargeId,
-      status: status.status,
-      paid: false,
-      qrImageUrl: status.qrImageUrl,
-      activated: false,
-    });
+    return NextResponse.json(
+      {
+        chargeId: status.chargeId,
+        status: status.status,
+        paid: false,
+        qrImageUrl: status.qrImageUrl,
+        activated: false,
+      },
+      { headers: noStore }
+    );
   }
 
   const store = await getStore();
@@ -86,12 +93,15 @@ export async function GET(
     }
   }
 
-  return NextResponse.json({
-    chargeId: status.chargeId,
-    status: status.status,
-    paid: true,
-    qrImageUrl: status.qrImageUrl,
-    activated: activated.status === "activated" || activated.status === "duplicate",
-    activation: activated,
-  });
+  return NextResponse.json(
+    {
+      chargeId: status.chargeId,
+      status: status.status,
+      paid: true,
+      qrImageUrl: status.qrImageUrl,
+      activated: activated.status === "activated" || activated.status === "duplicate",
+      activation: activated,
+    },
+    { headers: noStore }
+  );
 }
