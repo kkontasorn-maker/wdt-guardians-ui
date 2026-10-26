@@ -81,6 +81,7 @@ export async function createOmiseCharge(
 
   const res = await fetch("https://api.omise.co/charges", {
     method: "POST",
+    cache: "no-store",
     headers: {
       Authorization: omiseAuthHeader(config.secretKey),
       "Content-Type": "application/x-www-form-urlencoded",
@@ -141,6 +142,7 @@ export async function createOmisePromptPayCharge(input: {
 
   const res = await fetch("https://api.omise.co/charges", {
     method: "POST",
+    cache: "no-store",
     headers: {
       Authorization: omiseAuthHeader(config.secretKey),
       "Content-Type": "application/x-www-form-urlencoded",
@@ -194,7 +196,9 @@ export async function getOmiseChargeStatus(
     };
   }
 
+  // Next.js caches fetch() by default — PromptPay poll must always hit Omise live.
   const res = await fetch(`https://api.omise.co/charges/${encodeURIComponent(chargeId)}`, {
+    cache: "no-store",
     headers: {
       Authorization: omiseAuthHeader(config.secretKey),
     },

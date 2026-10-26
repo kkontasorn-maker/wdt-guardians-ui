@@ -59,7 +59,8 @@ function PromptPayWaitInner() {
         if (data.qrImageUrl) setQrUrl(data.qrImageUrl);
         if (data.status) setStatus(data.status);
 
-        if (data.paid && (data.activated || data.status === "successful")) {
+        // Redirect once Omise reports paid (activation may still be catching up).
+        if (data.paid || data.status === "successful") {
           done.current = true;
           const now = new Date().toISOString();
           const plan = planById(planId);
