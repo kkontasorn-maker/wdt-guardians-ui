@@ -154,6 +154,10 @@ export const messages: Record<Locale, Dict> = {
       email: "Email",
       phone: "Phone",
       acceptTerms: "Accept terms",
+      viewTerms: "View terms",
+      termsKicker: "Legal",
+      termsBackToJoin: "Back to join",
+      termsBackHome: "Home",
       authorizeBilling:
         "I understand Soft Launch charges the amount due today. Later periods are not auto-debited yet (Phase 2).",
       errFirstName: "First name is required.",
@@ -466,6 +470,10 @@ export const messages: Record<Locale, Dict> = {
       email: "อีเมล",
       phone: "โทรศัพท์",
       acceptTerms: "ยอมรับเงื่อนไข",
+      viewTerms: "ดูเงื่อนไข",
+      termsKicker: "ข้อกำหนด",
+      termsBackToJoin: "กลับไปสมัคร",
+      termsBackHome: "หน้าแรก",
       authorizeBilling:
         "เข้าใจว่า Soft Launch เรียกเก็บยอดที่ต้องจ่ายวันนี้ รอบถัดไปยังไม่ตัดอัตโนมัติ (เฟส 2)",
       errFirstName: "กรอกชื่อ",

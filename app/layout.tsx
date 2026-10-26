@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { ContentProvider } from "@/lib/contentContext";
+import { TermsProvider } from "@/lib/termsContent";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -55,8 +56,10 @@ export default function RootLayout({
         className={`${archivo.variable} ${inter.variable} ${notoSansThai.variable} min-h-screen font-sans antialiased`}
       >
         <ContentProvider>
-          {children}
-          <Toaster />
+          <TermsProvider>
+            {children}
+            <Toaster />
+          </TermsProvider>
         </ContentProvider>
       </body>
     </html>

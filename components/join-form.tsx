@@ -528,7 +528,18 @@ export function JoinForm() {
               <div className="mt-6 space-y-2">
                 <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-1 py-2 text-sm">
                   <Checkbox checked={acceptTerms} onCheckedChange={(v) => setAcceptTerms(Boolean(v))} />
-                  <span>{t("join.acceptTerms")}</span>
+                  <span>
+                    {t("join.acceptTerms")}{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-brand-deep underline underline-offset-2 hover:text-brand-orange"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      ({t("join.viewTerms")})
+                    </a>
+                  </span>
                 </label>
                 {fieldErrors.acceptTerms && (
                   <p className="text-sm text-destructive">{fieldErrors.acceptTerms}</p>
