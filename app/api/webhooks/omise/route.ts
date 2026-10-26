@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { upsertLiveMember, upsertLivePayment } from "@/lib/admin-book";
+import { sendWelcomeGuardianEmail } from "@/lib/mail";
 import { nowIso } from "@/lib/spine/ids";
 import { PLANS, type SpinePlanId } from "@/lib/spine/plans";
 import {
@@ -131,6 +132,12 @@ export async function POST(request: Request) {
           date: ts,
         });
       }
+      void sendWelcomeGuardianEmail({
+        to: row.member.email,
+        firstName: row.member.firstName,
+        guardianId: row.member.guardianId,
+        planLabel: PLANS[row.subscription.planId as SpinePlanId].name,
+      });
     }
   }
 

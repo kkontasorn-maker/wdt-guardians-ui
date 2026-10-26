@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { upsertLiveMember, upsertLivePayment } from "@/lib/admin-book";
+import { sendWelcomeGuardianEmail } from "@/lib/mail";
 import { nowIso } from "@/lib/spine/ids";
 import { PLANS, type SpinePlanId } from "@/lib/spine/plans";
 import { getOmiseChargeStatus } from "@/lib/spine/omise-charge";
@@ -90,6 +91,12 @@ export async function GET(
           date: ts,
         });
       }
+      void sendWelcomeGuardianEmail({
+        to: member.member.email,
+        firstName: member.member.firstName,
+        guardianId: member.member.guardianId,
+        planLabel: PLANS[member.subscription.planId as SpinePlanId].name,
+      });
     }
   }
 

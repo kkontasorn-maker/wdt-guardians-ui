@@ -586,6 +586,14 @@ export function JoinForm() {
                   );
                 })}
               </div>
+              {paymentMethod === "card" && (
+                <div className="mt-4 rounded-xl border border-border/80 bg-brand-paper/80 px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-deep">
+                    {t("join.omisePowered")}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("join.omiseCardNote")}</p>
+                </div>
+              )}
             </div>
             <OrderSummary planId={planId} interval={interval} />
           </div>

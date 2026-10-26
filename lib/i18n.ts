@@ -115,7 +115,8 @@ export const messages: Record<Locale, Dict> = {
     payment: {
       card: {
         name: "Credit/debit card",
-        description: "Visa, Mastercard, and other major cards issued in Thailand or abroad.",
+        description:
+          "Pay this period with Visa or Mastercard via Omise. Card numbers stay with Omise — never on WDT servers.",
         short: "Card",
       },
       bank: {
@@ -125,14 +126,16 @@ export const messages: Record<Locale, Dict> = {
       },
       promptpay: {
         name: "PromptPay",
-        description: "Pay from any PromptPay-linked bank app when each renewal is due.",
+        description:
+          "Pay this period’s amount with a one-time PromptPay QR. Soft Launch does not auto-debit next periods.",
         short: "PromptPay",
       },
     },
     join: {
       kicker: "Join",
       headline: "Become a Guardian.",
-      subhead: "Recurring support in Thai baht. Pause or cancel any time from the member portal.",
+      subhead:
+        "Support WDT in Thai baht for this membership period. Pause or cancel any time from the member portal.",
       stepPlan: "Choose plan",
       stepPlanShort: "Plan",
       stepDetails: "Guardian details",
@@ -151,15 +154,20 @@ export const messages: Record<Locale, Dict> = {
       email: "Email",
       phone: "Phone",
       acceptTerms: "Accept terms",
-      authorizeBilling: "Authorize recurring billing",
+      authorizeBilling:
+        "I understand Soft Launch charges the amount due today. Later periods are not auto-debited yet (Phase 2).",
       errFirstName: "First name is required.",
       errLastName: "Last name is required.",
       errEmail: "Enter a valid email.",
       errPhone: "Enter a valid phone number.",
       errTerms: "Accept the terms to continue.",
-      errBilling: "Authorize recurring billing to continue.",
+      errBilling: "Confirm you understand Soft Launch period billing to continue.",
       payHeadline: "Payment",
-      payBody: "Choose how you would like each renewal to be collected.",
+      payBody:
+        "Choose how to pay the amount due today. Soft Launch does not set up automatic renewals yet.",
+      omisePowered: "Powered by Omise",
+      omiseCardNote:
+        "Card details are entered in Omise’s secure form. WDT never sees your full card number.",
       summary: "Summary",
       billing: "Billing",
       monthly: "Monthly",
@@ -419,7 +427,8 @@ export const messages: Record<Locale, Dict> = {
     payment: {
       card: {
         name: "บัตรเครดิต/เดบิต",
-        description: "วีซ่า มาสเตอร์การ์ด และบัตรหลักที่ออกในไทยหรือต่างประเทศ",
+        description:
+          "จ่ายรอบนี้ด้วยวีซ่าหรือมาสเตอร์การ์ดผ่าน Omise เลขบัตรอยู่กับ Omise — ไม่ผ่านเซิร์ฟเวอร์ WDT",
         short: "บัตร",
       },
       bank: {
@@ -429,14 +438,16 @@ export const messages: Record<Locale, Dict> = {
       },
       promptpay: {
         name: "พร้อมเพย์",
-        description: "จ่ายจากแอปธนาคารที่ผูกพร้อมเพย์เมื่อถึงรอบต่ออายุ",
+        description:
+          "จ่ายยอดรอบนี้ด้วย QR พร้อมเพย์ครั้งเดียว Soft Launch ยังไม่ตัดรอบถัดไปอัตโนมัติ",
         short: "พร้อมเพย์",
       },
     },
     join: {
       kicker: "สมัคร",
       headline: "เป็นกาเดียน",
-      subhead: "สนับสนุนเป็นงวดด้วยเงินบาท หยุดหรือยกเลิกได้จากหน้าสมาชิก",
+      subhead:
+        "สนับสนุน WDT ด้วยเงินบาทสำหรับรอบสมาชิกนี้ หยุดหรือยกเลิกได้จากหน้าสมาชิก",
       stepPlan: "เลือกแผน",
       stepPlanShort: "แผน",
       stepDetails: "ข้อมูลกาเดียน",
@@ -455,15 +466,20 @@ export const messages: Record<Locale, Dict> = {
       email: "อีเมล",
       phone: "โทรศัพท์",
       acceptTerms: "ยอมรับเงื่อนไข",
-      authorizeBilling: "อนุญาตให้เรียกเก็บเป็นงวด",
+      authorizeBilling:
+        "เข้าใจว่า Soft Launch เรียกเก็บยอดที่ต้องจ่ายวันนี้ รอบถัดไปยังไม่ตัดอัตโนมัติ (เฟส 2)",
       errFirstName: "กรอกชื่อ",
       errLastName: "กรอกนามสกุล",
       errEmail: "กรอกอีเมลให้ถูกต้อง",
       errPhone: "กรอกเบอร์โทรให้ถูกต้อง",
       errTerms: "ยอมรับเงื่อนไขก่อนไปต่อ",
-      errBilling: "อนุญาตให้เรียกเก็บเป็นงวดก่อนไปต่อ",
+      errBilling: "ยืนยันว่าเข้าใจการเรียกเก็บรอบ Soft Launch ก่อนไปต่อ",
       payHeadline: "ชำระเงิน",
-      payBody: "เลือกว่าจะให้เก็บเงินแต่ละรอบด้วยวิธีไหน",
+      payBody:
+        "เลือกวิธีจ่ายยอดที่ต้องจ่ายวันนี้ Soft Launch ยังไม่ตั้งการต่ออายุอัตโนมัติ",
+      omisePowered: "ให้บริการชำระเงินโดย Omise",
+      omiseCardNote:
+        "กรอกข้อมูลบัตรในแบบฟอร์มปลอดภัยของ Omise WDT จะไม่เห็นเลขบัตรเต็ม",
       summary: "สรุป",
       billing: "รอบเรียกเก็บ",
       monthly: "รายเดือน",

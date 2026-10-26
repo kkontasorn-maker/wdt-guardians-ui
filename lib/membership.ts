@@ -101,12 +101,14 @@ export const PAYMENT_METHODS: {
   {
     id: "card",
     name: "Credit/debit card",
-    description: "Visa, Mastercard, and other major cards issued in Thailand or abroad.",
+    description:
+      "Pay this period via Omise. Card numbers stay with Omise — never on WDT servers.",
   },
   {
     id: "promptpay",
     name: "PromptPay",
-    description: "Pay from any PromptPay-linked bank app when each renewal is due.",
+    description:
+      "Pay this period with a one-time PromptPay QR. Soft Launch does not auto-debit next periods.",
   },
 ];
 

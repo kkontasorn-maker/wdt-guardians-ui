@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { upsertLiveMember, upsertLivePayment } from "@/lib/admin-book";
+import { sendWelcomeGuardianEmail } from "@/lib/mail";
 import { nowIso } from "@/lib/spine/ids";
 import { PLANS, type SpinePlanId } from "@/lib/spine/plans";
 import { createOmiseCharge, thbToSatang } from "@/lib/spine/omise-charge";
@@ -130,6 +131,15 @@ export async function POST(request: Request) {
       nextRenewal: null,
       founding: member.founding,
     });
+
+    if (activated.status === "activated") {
+      void sendWelcomeGuardianEmail({
+        to: member.email,
+        firstName: member.firstName,
+        guardianId: member.guardianId,
+        planLabel: planDisplay(subscription.planId),
+      });
+    }
 
     return NextResponse.json({
       ok: true,
