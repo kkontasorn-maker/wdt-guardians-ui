@@ -7,6 +7,7 @@ import { handleOmiseChargeComplete } from "@/lib/spine/service";
 import { getStore } from "@/lib/spine/store";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/membership/charges/:chargeId
