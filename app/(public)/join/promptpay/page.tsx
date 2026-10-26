@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMembership } from "@/lib/hooks";
 import { useLocale } from "@/lib/localeContext";
@@ -31,6 +31,8 @@ function PromptPayWaitInner() {
   const [qrUrl, setQrUrl] = useState(initialQr ? decodeURIComponent(initialQr) : "");
   const [status, setStatus] = useState("pending");
   const [error, setError] = useState<string | null>(null);
+  const [downloadBusy, setDownloadBusy] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
   const done = useRef(false);
 
   useEffect(() => {
@@ -125,6 +127,34 @@ function PromptPayWaitInner() {
     t,
   ]);
 
+  async function downloadQr() {
+    if (!qrUrl) return;
+    setDownloadBusy(true);
+    setDownloadError(null);
+    try {
+      const res = await fetch(qrUrl, { mode: "cors" });
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = `${guardianId || "wdt-guardian"}-promptpay-qr.png`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch {
+      // Cross-origin QR hosts may block blob download — open image for save/screenshot.
+      try {
+        window.open(qrUrl, "_blank", "noopener,noreferrer");
+      } catch {
+        setDownloadError(t("join.promptpayDownloadError"));
+      }
+    } finally {
+      setDownloadBusy(false);
+    }
+  }
+
   if (!chargeId || !guardianId) {
     return (
       <div className="mx-auto max-w-lg px-5 py-16">
@@ -170,11 +200,36 @@ function PromptPayWaitInner() {
             {guardianId} · {subscriptionId.slice(0, 12)}…
           </p>
         )}
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-5 w-full sm:w-auto"
+          disabled={!qrUrl || downloadBusy}
+          onClick={() => void downloadQr()}
+        >
+          {downloadBusy ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              {t("join.promptpayDownloading")}
+            </>
+          ) : (
+            <>
+              <Download className="mr-2 h-4 w-4" />
+              {t("join.promptpayDownload")}
+            </>
+          )}
+        </Button>
+        {downloadError && (
+          <p className="mt-2 text-center text-sm text-destructive">{downloadError}</p>
+        )}
       </div>
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
-      <p className="mt-6 text-sm text-muted-foreground">{t("join.promptpayHint")}</p>
+      <p className="mt-6 rounded-md border border-brand-orange/25 bg-accent/60 px-3 py-2.5 text-sm font-medium text-brand-ink">
+        {t("join.promptpayReturn")}
+      </p>
+      <p className="mt-3 text-sm text-muted-foreground">{t("join.promptpayHint")}</p>
 
       <div className="mt-8 flex gap-3">
         <Button asChild variant="outline">
