@@ -170,10 +170,16 @@ export const messages: Record<Locale, Dict> = {
       confirming: "Confirming…",
       confirm: "Confirm membership",
       promptpayHeadline: "Scan to pay with PromptPay",
-      promptpayBody: "Open your bank app and scan this QR for {amount}. Stay on this page until payment confirms.",
+      promptpayBody:
+        "Open your banking app and scan this QR for {amount}. Prefer to scan from Photos? Download the QR first.",
       promptpayWaiting: "Waiting for PromptPay confirmation",
+      promptpayReturn:
+        "After you complete the transfer in your bank app, return to this page — we will confirm payment and show your Guardian ID.",
       promptpayHint:
-        "You can leave after paying — activation also arrives via Omise webhook. Keep your email handy for /manage/login.",
+        "Keep this tab open or bookmark it. If confirmation is slow, check your email for join details and use /manage/login with your Guardian ID.",
+      promptpayDownload: "Download QR code",
+      promptpayDownloading: "Preparing…",
+      promptpayDownloadError: "Could not download the QR. Try a screenshot, or scan on this screen.",
       promptpayMissing: "Missing PromptPay session. Start again from Join.",
       promptpayPollError: "Could not check payment status. Retry in a moment.",
     },
@@ -468,10 +474,16 @@ export const messages: Record<Locale, Dict> = {
       confirming: "กำลังยืนยัน…",
       confirm: "ยืนยันสมาชิกภาพ",
       promptpayHeadline: "สแกนจ่ายด้วยพร้อมเพย์",
-      promptpayBody: "เปิดแอปธนาคารแล้วสแกน QR นี้เป็นจำนวน {amount} อยู่หน้านี้จนกว่าจะยืนยันการชำระ",
+      promptpayBody:
+        "เปิดแอปธนาคารแล้วสแกน QR นี้เป็นจำนวน {amount} หากต้องการสแกนจากรูปภาพ ให้ดาวน์โหลด QR ก่อน",
       promptpayWaiting: "รอการยืนยันจากพร้อมเพย์",
+      promptpayReturn:
+        "โอนในแอปธนาคารเสร็จแล้ว ให้กลับมาที่หน้านี้ — ระบบจะยืนยันการชำระแล้วแสดงรหัสกาเดียน",
       promptpayHint:
-        "จ่ายแล้วออกจากหน้านี้ได้ — ระบบจะเปิดสมาชิกเมื่อ Omise ยืนยัน เก็บอีเมลไว้เข้า /manage/login",
+        "เปิดแท็บนี้ไว้หรือบุ๊กมาร์กไว้ หากยืนยันช้า ให้เช็คอีเมลและเข้า /manage/login ด้วยรหัสกาเดียน",
+      promptpayDownload: "ดาวน์โหลด QR",
+      promptpayDownloading: "กำลังเตรียม…",
+      promptpayDownloadError: "ดาวน์โหลด QR ไม่ได้ ลองแคปหน้าจอ หรือสแกนบนหน้าจอนี้",
       promptpayMissing: "ไม่พบเซสชันพร้อมเพย์ กรุณาสมัครใหม่จากหน้า Join",
       promptpayPollError: "ตรวจสถานะการชำระไม่ได้ ลองใหม่ในอีกสักครู่",
     },
